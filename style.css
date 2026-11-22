@@ -1,0 +1,33 @@
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:#08090c;color:#f7f5ef;font-family:Vazirmatn,Arial,sans-serif}
+body{background:radial-gradient(circle at 50% -10%,rgba(211,174,96,.13),transparent 38%),linear-gradient(135deg,#08090c,#0c0d12 55%,#08090c)}
+body:after{content:"";position:fixed;inset:0;pointer-events:none;background:radial-gradient(circle at 100% 70%,rgba(120,100,255,.05),transparent 30%)}
+.page{width:min(1040px,calc(100% - 28px));margin:auto;padding:24px 0 25px}
+.topbar{display:flex;justify-content:space-between;align-items:center}
+.brand{display:flex;align-items:center;gap:11px}.mark{width:42px;height:42px;border:1px solid rgba(218,181,104,.45);border-radius:13px;display:grid;place-items:center;color:#e8cb8b;background:rgba(218,181,104,.07);font-weight:800}
+.brand b{display:block;font-size:16px}.brand small{display:block;color:#777b86;font-size:9px;margin-top:2px}
+.status{border:1px solid #20232b;background:#101217;padding:8px 12px;border-radius:999px;color:#9699a3;font-size:9px;display:flex;align-items:center;gap:7px}
+.status i{width:7px;height:7px;border-radius:50%;background:#69cf9a;box-shadow:0 0 10px #69cf9a}
+.hero{text-align:center;max-width:720px;margin:75px auto 42px}.eyebrow{font-size:9px;letter-spacing:3px;color:#d8b66f;font-weight:700;margin-bottom:14px}
+.hero h1{font-size:clamp(31px,6vw,55px);line-height:1.2;margin:0;font-weight:800;letter-spacing:-1px}.hero em{font-style:normal;color:#dfc17e}
+.hero p{color:#8d909a;font-size:12px;line-height:2;margin:16px auto 0}
+.calculator{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+.card{border:1px solid rgba(255,255,255,.085);border-radius:23px;background:linear-gradient(145deg,rgba(23,25,32,.88),rgba(12,13,18,.82));padding:26px;box-shadow:0 25px 90px rgba(0,0,0,.3);backdrop-filter:blur(18px)}
+label{display:block;color:#a9abb4;font-size:11px;margin-bottom:8px}
+.select-wrap{position:relative;margin-bottom:20px}.select-wrap select{appearance:none;width:100%;background:#11131a;color:#f5f3ed;border:1px solid #252832;border-radius:13px;padding:14px 15px;font:500 13px Vazirmatn;outline:0}
+.select-wrap span{position:absolute;left:14px;top:11px;color:#d6b36a;font-size:20px;pointer-events:none}
+.amount{display:flex;direction:ltr;align-items:center;border:1px solid #252832;background:#11131a;border-radius:13px;padding:0 14px}
+.amount:focus-within{border-color:#ad8a4e;box-shadow:0 0 0 3px rgba(214,179,106,.05)}
+input{width:100%;border:0;outline:0;background:transparent;color:#fff;font:700 24px Vazirmatn;padding:13px 0}.amount b{color:#d9b971;font-size:11px;white-space:nowrap;padding-right:9px}
+button{border:0;width:100%;margin-top:20px;padding:14px;border-radius:13px;background:linear-gradient(135deg,#b78c40,#e4c37f);color:#17130b;font:800 12px Vazirmatn;cursor:pointer}
+button strong{font-size:17px;margin-right:8px}
+.result-card{position:relative;overflow:hidden}.result-card:after{content:"";position:absolute;width:230px;height:230px;border-radius:50%;background:rgba(214,179,106,.09);filter:blur(70px);left:-110px;top:-130px}
+.result-top{display:flex;justify-content:space-between;color:#999ca6;font-size:10px;position:relative;z-index:1}.result-top #percent{color:#dfc17e;font-weight:700}
+.result-card>#coupon{direction:ltr;text-align:right;font-size:clamp(34px,5vw,49px);font-weight:800;color:#e4c27e;letter-spacing:-1px;margin-top:28px;position:relative;z-index:1;overflow-wrap:anywhere}
+.result-card>#couponLabel{color:#8b8e98;font-size:11px;margin-top:5px}
+.details{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:27px}.details div{border:1px solid #22252d;border-radius:12px;padding:11px}
+.details small{display:block;color:#6f727b;font-size:9px;margin-bottom:5px}.details b{display:block;color:#ddd;font-size:12px;direction:ltr}
+.formula{border-top:1px solid #20232a;margin-top:12px;padding-top:12px;display:flex;justify-content:space-between;color:#656873;font-size:8px;gap:8px}.formula code{font:9px Vazirmatn;color:#92949d;direction:ltr}
+.note{min-height:27px;color:#777a84;text-align:center;font-size:9px;margin:15px 0 0}
+footer{display:flex;justify-content:space-between;color:#5e616b;font-size:8px;margin-top:5px}
+@media(max-width:720px){.page{width:calc(100% - 20px);padding-top:18px}.hero{margin:58px auto 28px}.hero h1{font-size:34px}.hero p{font-size:11px}.calculator{grid-template-columns:1fr}.card{padding:21px;border-radius:20px}.result-card>#coupon{margin-top:22px}.details{margin-top:22px}.formula{display:block}.formula code{display:block;margin-top:5px}footer{font-size:7px}.brand small{display:none}}
