@@ -1,70 +1,84 @@
 <!doctype html>
 <html lang="fa" dir="rtl">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#08090c">
-<meta name="description" content="ارزم - محاسبه‌گر کوپن ارزی">
-<title>ارزم | محاسبه‌گر کوپن ارزی</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#08090c">
+  <meta name="description" content="محاسبه‌گر کوپن؛ محاسبه مبلغ به تومان و کوپن دریافتی بر اساس نرخ زنده ارز">
+  <title>محاسبه‌گر کوپن</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <main class="page">
-<header class="topbar">
-  <div class="brand">
-    <div class="mark">ار</div>
-    <div><b>ارزم</b><small>محاسبه‌گر کوپن ارزی</small></div>
-  </div>
-  <div class="status"><i></i><span id="status">در حال دریافت نرخ...</span></div>
-</header>
+  <header class="topbar">
+    <a class="brand" href="./" aria-label="صفحه اصلی">
+      <div class="mark">ک</div>
+      <div><b>محاسبه‌گر کوپن</b><small>محاسبه سریع و دقیق کوپن ارزی</small></div>
+    </a>
+    <nav class="top-actions">
+      <a class="nav-link active" href="./">محاسبه‌گر</a>
+      <a class="nav-link" href="products.html">لیست قیمت محصولات</a>
+      <div class="status"><i></i><span id="status">در حال دریافت نرخ...</span></div>
+    </nav>
+  </header>
 
-<section class="hero">
-  <div class="eyebrow">SMART CURRENCY COUPON CALCULATOR</div>
-  <h1>کوپن ارزی خودت را<br><em>سریع و دقیق</em> محاسبه کن.</h1>
-  <p>ارز را انتخاب کن، مبلغ را وارد کن و مقدار کوپن قابل دریافت را ببین.</p>
-</section>
+  <section class="hero">
+    <div class="eyebrow">SMART COUPON CALCULATOR</div>
+    <h1>کوپن خودت را<br><em>سریع و دقیق</em> محاسبه کن.</h1>
+    <p>ارز را انتخاب کن، مبلغ را وارد کن و جزئیات کوپن دریافتی را ببین.</p>
+  </section>
 
-<section class="calculator">
-<article class="card input-card">
-  <label for="currency">ارز</label>
-  <div class="select-wrap">
-    <select id="currency" aria-label="انتخاب ارز"></select><span>⌄</span>
-  </div>
+  <section class="calculator">
+    <article class="card input-card">
+      <div class="card-kicker">اطلاعات محاسبه</div>
+      <label for="currency">انتخاب ارز</label>
+      <div class="select-wrap">
+        <select id="currency" aria-label="انتخاب ارز">
+          <option value="">ابتدا ارز را انتخاب کنید</option>
+        </select><span>⌄</span>
+      </div>
 
-  <label for="amount">مبلغ</label>
-  <div class="amount">
-    <input id="amount" inputmode="decimal" autocomplete="off" placeholder="مثلاً ۱٬۰۰۰">
-    <b id="unit">یورو</b>
-  </div>
+      <label for="amount">مبلغ</label>
+      <div class="amount">
+        <input id="amount" inputmode="decimal" autocomplete="off" placeholder="مثلاً ۱٬۰۰۰">
+        <b id="unit">—</b>
+      </div>
+      <button id="calc" type="button">محاسبه کوپن <strong>←</strong></button>
+      <p class="helper">درصد کوپن بر اساس معادل تومانی مبلغ محاسبه می‌شود.</p>
+    </article>
 
-  <button id="calc" type="button">محاسبه کوپن <strong>←</strong></button>
-</article>
+    <article class="card result-card">
+      <div class="result-heading">
+        <div><div class="card-kicker">نتیجه محاسبه</div><h2>خلاصه کوپن شما</h2></div>
+        <span id="percent" class="percent">—</span>
+      </div>
+      <div class="result-grid">
+        <div class="result-item">
+          <small>مبلغ به تومان</small>
+          <strong id="tomans">—</strong>
+        </div>
+        <div class="result-item">
+          <small>میزان کوپن دریافتی به تومان</small>
+          <strong id="couponToman">—</strong>
+        </div>
+        <div class="result-item result-primary">
+          <small>میزان کوپن به ارز انتخاب‌شده</small>
+          <strong id="couponCurrency">—</strong>
+          <span id="couponUnit">ابتدا ارز را انتخاب کنید</span>
+        </div>
+      </div>
+      <div class="result-foot" id="resultMessage">برای مشاهده نتیجه، ارز و مبلغ را وارد کنید.</div>
+    </article>
+  </section>
 
-<article class="card result-card">
-  <div class="result-top"><span>کوپن قابل دریافت</span><span id="percent">—</span></div>
-  <div id="coupon">—</div>
-  <div id="couponLabel">مبلغ را وارد کنید</div>
-
-  <div class="details">
-    <div><small>ارزش خرید</small><b id="tomans">—</b></div>
-    <div><small>نرخ ارز</small><b id="rate">—</b></div>
-  </div>
-
-  <div class="formula">
-    <span>فرمول</span>
-    <code id="formula">مبلغ × نرخ ارز → درصد بازه → کوپن</code>
-  </div>
-</article>
-</section>
-
-<div class="note" id="note"></div>
-<footer>
-  <span>نرخ‌ها از منبع آنلاین دریافت می‌شوند.</span>
-  <span id="updated">—</span>
-</footer>
+  <div class="note" id="note"></div>
+  <footer>
+    <span>نرخ ارز از منبع آنلاین دریافت می‌شود.</span>
+    <span id="updated">—</span>
+  </footer>
 </main>
 <script src="script.js"></script>
 </body>

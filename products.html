@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#08090c">
+  <meta name="description" content="لیست قیمت محصولات با امکان مشاهده قیمت پیشنهادی فروش به ارز انتخابی">
+  <title>لیست قیمت محصولات | محاسبه‌گر کوپن</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main class="page products-page">
+  <header class="topbar">
+    <a class="brand" href="./" aria-label="صفحه اصلی">
+      <div class="mark">ک</div>
+      <div><b>محاسبه‌گر کوپن</b><small>فهرست و قیمت محصولات</small></div>
+    </a>
+    <nav class="top-actions">
+      <a class="nav-link" href="./">محاسبه‌گر</a>
+      <a class="nav-link active" href="products.html">لیست قیمت محصولات</a>
+      <div class="status"><i></i><span id="status">در حال دریافت نرخ...</span></div>
+    </nav>
+  </header>
+
+  <section class="products-hero">
+    <div class="eyebrow">PRODUCT PRICE LIST</div>
+    <h1>لیست قیمت <em>محصولات</em></h1>
+    <p>قیمت پیشنهادی فروش با توجه به ارز انتخاب‌شده و نرخ روز محاسبه می‌شود.</p>
+  </section>
+
+  <section class="products-toolbar card">
+    <div class="currency-control">
+      <label for="productCurrency">نمایش قیمت پیشنهادی به ارز</label>
+      <div class="select-wrap">
+        <select id="productCurrency">
+          <option value="">ابتدا ارز را انتخاب کنید</option>
+        </select><span>⌄</span>
+      </div>
+    </div>
+    <div class="view-control" role="group" aria-label="نحوه نمایش محصولات">
+      <button type="button" id="tableView" class="view-button selected">نمایش جدولی</button>
+      <button type="button" id="cardView" class="view-button">نمایش کارتی</button>
+    </div>
+  </section>
+
+  <div class="list-summary">
+    <span id="productCount">در حال بارگذاری محصولات...</span>
+    <span id="productRate">قیمت پیشنهادی پس از دریافت نرخ نمایش داده می‌شود.</span>
+  </div>
+
+  <section id="tableContainer" class="card table-card">
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>نام محصول</th>
+            <th>قیمت نماینده در ایران</th>
+            <th>قیمت مصرف‌کننده در ایران</th>
+            <th id="suggestedHeading">قیمت پیشنهادی فروش</th>
+            <th>تصویر محصول</th>
+          </tr>
+        </thead>
+        <tbody id="productTableBody">
+          <tr><td colspan="5" class="empty-state">در حال بارگذاری...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="cardsContainer" class="product-cards" hidden></section>
+  <div class="note" id="productNote"></div>
+  <footer>
+    <span>اطلاعات محصولات بر اساس فایل اکسل مرجع تهیه شده است.</span>
+    <a href="./">بازگشت به محاسبه‌گر</a>
+  </footer>
+</main>
+<script src="products.js"></script>
+</body>
+</html>
