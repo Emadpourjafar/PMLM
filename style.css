@@ -137,3 +137,29 @@ tbody tr:last-child td{border-bottom:0}
   .list-summary{flex-direction:column}
   footer{font-size:7px}
 }
+
+/* ---- دکمه تغییر زبان ---- */
+.lang-btn{background:transparent;font-weight:700}
+
+/* ---- توقف تولید ---- */
+td.stopped{color:#e0877f;font-weight:600}
+.product-card-prices b.stopped,.product-card-prices .card-suggested b.stopped{color:#e0877f}
+
+/* ---- دکمه دانلود PDF ---- */
+.download-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;color:#fff;font-weight:800;border-color:rgba(206,185,255,.55);background:linear-gradient(135deg,#6a2de0 0%,#8b4cf5 55%,#b377ff 100%);box-shadow:0 6px 20px rgba(124,58,237,.38),inset 0 1px 0 rgba(255,255,255,.25);transition:.2s}
+.download-btn:hover:not(:disabled){background:linear-gradient(135deg,#7a3bf0 0%,#9a5cff 55%,#c08cff 100%);box-shadow:0 8px 26px rgba(139,76,245,.55),inset 0 1px 0 rgba(255,255,255,.35);transform:translateY(-1px)}
+.download-btn:disabled{opacity:.55;cursor:not-allowed}
+.download-icon{width:14px;height:14px;flex:none}
+@media(max-width:800px){
+  .view-control{flex-wrap:wrap}
+  .download-btn{flex:1 1 100%}
+  .lang-btn + .status{width:auto;flex:1 1 auto}
+}
+
+/* ---- نسخه انگلیسی (چپ‌به‌راست) ---- */
+[dir=ltr] .select-wrap span{left:auto;right:14px}
+[dir=ltr] #calc strong{margin-right:0;margin-left:8px}
+[dir=ltr] .result-item strong{direction:ltr}
+[dir=ltr] th,[dir=ltr] td{text-align:left}
+[dir=ltr] .search-field input{direction:ltr;text-align:left;padding:13px 14px 13px 46px}
+[dir=ltr] .search-icon{right:auto;left:15px}

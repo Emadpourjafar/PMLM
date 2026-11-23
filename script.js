@@ -28,7 +28,7 @@ function parseRatesPayload(payload) {
   });
   if (!Object.keys(rates).length) throw new Error("NO_VALID_RATES");
   const jalali = String(payload.data.generated_at_jalali || "").trim().split(/\s+/);
-  return { rates, meta: { date: jalali[0] || "", time: jalali[1] || "" } };
+  return { rates, meta: { date: jalali[0] || "", time: jalali[1] || "", iso: String(payload.data.generated_at || "") } };
 }
 
 const currencies = {
@@ -53,7 +53,13 @@ const currencies = {
 };
 
 const $ = (selector) => document.querySelector(selector);
-const fmt = (n) => new Intl.NumberFormat("fa-IR", { maximumFractionDigits: 2 }).format(n);
+const fmt = (n) => new Intl.NumberFormat(numLocale(), { maximumFractionDigits: 2 }).format(n);
+const cName = (key) => (isEn() ? CURRENCY_EN[key][0] : currencies[key][0]);
+const cUnit = (key) => (isEn() ? CURRENCY_EN[key][1] : currencies[key][1]);
+
+let ratesState = "loading"; // loading | live | cached | none
+let ratesMeta = null;
+let mode = "initial";       // initial | calc | none  (برای بازسازی متن‌ها هنگام تغییر زبان)
 
 function parseNumber(value) {
   const persian = "۰۱۲۳۴۵۶۷۸۹";
@@ -68,12 +74,15 @@ function parseNumber(value) {
 }
 
 function fillCurrencySelect(select) {
+  const current = select.value;
+  while (select.options.length > 1) select.remove(1);
   Object.entries(currencies).forEach(([key, data]) => {
     const option = document.createElement("option");
     option.value = key;
-    option.textContent = `${data[2]}  ${data[0]}`;
+    option.textContent = `${data[2]}  ${cName(key)}`;
     select.appendChild(option);
   });
+  select.value = current;
 }
 
 function getCachedRates() {
@@ -87,19 +96,38 @@ function getCachedRates() {
   }
 }
 
-function setRateStatus(online, meta) {
-  $("#status").textContent = online ? "نرخ زنده" : "آخرین نرخ ذخیره‌شده";
-  const dot = $("#status").previousElementSibling;
-  dot.style.background = online ? "#69cf9a" : "#d9a75e";
-  dot.style.boxShadow = online ? "0 0 10px #69cf9a" : "0 0 10px #d9a75e";
-  if (meta?.date && meta?.time) {
-    $("#updated").textContent = `آخرین بروزرسانی: ${meta.date} - ${meta.time}`;
+function formatMeta(meta) {
+  if (isEn() && meta.iso) {
+    const date = new Date(meta.iso);
+    if (!isNaN(date)) return new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short" }).format(date);
   }
+  return `${meta.date} - ${meta.time}`;
+}
+
+function renderStatus() {
+  const dot = $("#status").previousElementSibling;
+  const states = {
+    loading: ["status_loading", null],
+    live: ["status_live", "#69cf9a"],
+    cached: ["status_cached", "#d9a75e"],
+    none: ["status_none", "#d97878"]
+  };
+  const [key, color] = states[ratesState];
+  $("#status").textContent = t(key);
+  if (color) {
+    dot.style.background = color;
+    if (ratesState !== "none") dot.style.boxShadow = `0 0 10px ${color}`;
+  }
+  $("#updated").textContent = ratesMeta?.date && ratesMeta?.time
+    ? t("footer_updated", formatMeta(ratesMeta))
+    : "—";
 }
 
 function applyRates(rates, meta, online) {
   window.couponRates = rates;
-  setRateStatus(online, meta);
+  ratesState = online ? "live" : "cached";
+  ratesMeta = meta;
+  renderStatus();
   calculate();
 }
 
@@ -126,23 +154,24 @@ function clearResults(message) {
 }
 
 function calculate() {
+  mode = "calc";
   const key = $("#currency").value;
   const amount = parseNumber($("#amount").value);
 
   if (!key) {
-    clearResults("ابتدا ارز موردنظر را انتخاب کنید.");
+    clearResults(t("msg_choose_currency"));
     return;
   }
-  $("#unit").textContent = currencies[key][1];
-  $("#couponUnit").textContent = currencies[key][1];
+  $("#unit").textContent = cUnit(key);
+  $("#couponUnit").textContent = cUnit(key);
 
   const rate = getRate(key);
   if (!rate) {
-    clearResults("نرخ این ارز در حال حاضر در دسترس نیست.");
+    clearResults(t("msg_rate_unavailable"));
     return;
   }
   if (!amount) {
-    clearResults("مبلغ را وارد کنید و دکمه محاسبه را بزنید.");
+    clearResults(t("msg_enter_amount"));
     return;
   }
 
@@ -151,12 +180,12 @@ function calculate() {
   const couponToman = tomanValue * percent / 100;
   const couponCurrency = couponToman / rate;
 
-  $("#percent").textContent = `${fmt(percent)}٪`;
-  $("#tomans").textContent = `${fmt(tomanValue)} تومان`;
-  $("#couponToman").textContent = `${fmt(couponToman)} تومان`;
+  $("#percent").textContent = `${fmt(percent)}${isEn() ? "%" : "٪"}`;
+  $("#tomans").textContent = `${fmt(tomanValue)} ${t("toman")}`;
+  $("#couponToman").textContent = `${fmt(couponToman)} ${t("toman")}`;
   $("#couponCurrency").textContent = fmt(couponCurrency);
-  $("#couponUnit").textContent = currencies[key][1];
-  $("#resultMessage").textContent = `درصد کوپن برای این محاسبه ${fmt(percent)} درصد است.`;
+  $("#couponUnit").textContent = cUnit(key);
+  $("#resultMessage").textContent = t("msg_percent", fmt(percent));
 }
 
 async function loadRates() {
@@ -182,13 +211,22 @@ async function loadRates() {
     if (cached.rates && typeof cached.rates === "object") {
       applyRates(cached.rates, cached.meta, false);
     } else {
-      $("#status").textContent = "نرخ در دسترس نیست";
-      $("#status").previousElementSibling.style.background = "#d97878";
-      $("#updated").textContent = "—";
-      clearResults("هنوز نرخی برای محاسبه دریافت یا ذخیره نشده است.");
+      ratesState = "none";
+      ratesMeta = null;
+      renderStatus();
+      clearResults(t("msg_no_rates"));
+      mode = "none";
     }
   }
 }
+
+// تغییر زبان: متن‌های پویا دوباره ساخته می‌شوند (متن‌های ثابت را i18n.js عوض می‌کند)
+window.onLangChange = function () {
+  fillCurrencySelect($("#currency"));
+  renderStatus();
+  if (mode === "calc") calculate();
+  else if (mode === "none") clearResults(t("msg_no_rates"));
+};
 
 fillCurrencySelect($("#currency"));
 $("#currency").addEventListener("change", calculate);

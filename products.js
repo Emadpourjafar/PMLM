@@ -28,7 +28,7 @@ function parseRatesPayload(payload) {
   });
   if (!Object.keys(rates).length) throw new Error("NO_VALID_RATES");
   const jalali = String(payload.data.generated_at_jalali || "").trim().split(/\s+/);
-  return { rates, meta: { date: jalali[0] || "", time: jalali[1] || "" } };
+  return { rates, meta: { date: jalali[0] || "", time: jalali[1] || "", iso: String(payload.data.generated_at || "") } };
 }
 
 const currencies = {
@@ -44,10 +44,14 @@ const currencies = {
 };
 
 const $ = (s) => document.querySelector(s);
-const fmt = (n) => new Intl.NumberFormat("fa-IR", { maximumFractionDigits: 2 }).format(n);
+const fmt = (n) => new Intl.NumberFormat(numLocale(), { maximumFractionDigits: 2 }).format(n);
+const cName = (key) => (isEn() ? CURRENCY_EN[key][0] : currencies[key][0]);
+const cUnit = (key) => (isEn() ? CURRENCY_EN[key][1] : currencies[key][1]);
 let products = [];
 let rates = null;
 let currentView = "table";
+let productsState = "loading"; // loading | ok | error
+let ratesState = "loading";    // loading | live | cached | none
 
 function getCachedRates() {
   try {
@@ -66,15 +70,18 @@ function getRate(key) {
   return Number.isFinite(n) && n > 0 ? n : 0;
 }
 
-function formatToman(value) {
-  return value == null ? "قیمت ثبت نشده" : `${fmt(value)} تومان`;
-}
-
-// فقط retailPriceToman از products.json خوانده می‌شود؛ مقدار نامعتبر → null (بدون حدس)
+// فقط retailPriceToman از products.json خوانده می‌شود؛ صفر، خالی یا نامعتبر → null (توقف تولید)
 function validRetail(value) {
   if (value === null || value === undefined || value === "" || typeof value === "boolean") return null;
   const n = Number(value);
   return Number.isFinite(n) && n > 0 ? n : null;
+}
+
+// محصولی که قیمتش صفر / بدون قیمت است: «توقف تولید»
+const isStopped = (product) => product.retailPriceToman == null;
+
+function formatToman(value) {
+  return value == null ? t("price_stopped") : `${fmt(value)} ${t("toman")}`;
 }
 
 // قیمت نماینده همیشه محاسبه می‌شود: مصرف‌کننده ÷ 1.1
@@ -89,6 +96,13 @@ function suggestedPrice(product, currencyKey) {
   if (price == null || !rate) return null;
   const multiplier = price < 3000000 ? 1.6 : 1.5;
   return (price * multiplier) / rate;
+}
+
+function suggestedText(product, key) {
+  if (isStopped(product)) return t("price_stopped");
+  if (!key) return t("choose_currency_short");
+  const suggestion = suggestedPrice(product, key);
+  return suggestion == null ? t("price_unavailable") : `${fmt(suggestion)} ${cUnit(key)}`;
 }
 
 /* ---------- جستجو ---------- */
@@ -151,40 +165,44 @@ function escapeHtml(value) {
 
 function imageMarkup(product, className = "") {
   const url = safeUrl(product.imageUrl);
-  if (!url) return `<div class="image-placeholder ${className}">تصویر موجود نیست</div>`;
-  return `<img class="${className}" src="${escapeHtml(url)}" alt="${escapeHtml(product.name)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'image-placeholder',textContent:'تصویر در دسترس نیست'}))">`;
+  if (!url) return `<div class="image-placeholder ${className}">${t("img_missing")}</div>`;
+  return `<img class="${className}" src="${escapeHtml(url)}" alt="${escapeHtml(product.name)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'image-placeholder',textContent:t('img_unavailable')}))">`;
 }
 
 function fillCurrencySelect() {
+  const select = $("#productCurrency");
+  const current = select.value;
+  while (select.options.length > 1) select.remove(1);
   Object.entries(currencies).forEach(([key, data]) => {
     const option = document.createElement("option");
     option.value = key;
-    option.textContent = `${data[2]}  ${data[0]}`;
-    $("#productCurrency").appendChild(option);
+    option.textContent = `${data[2]}  ${cName(key)}`;
+    select.appendChild(option);
   });
+  select.value = current;
 }
 
 function renderTable() {
   const key = $("#productCurrency").value;
   $("#suggestedHeading").textContent = key
-    ? `قیمت پیشنهادی فروش (${currencies[key][1]})`
-    : "قیمت پیشنهادی فروش";
+    ? `${t("th_suggested")} (${cUnit(key)})`
+    : t("th_suggested");
   const list = visibleProducts();
   if (!list.length) {
-    $("#productTableBody").innerHTML = `<tr><td colspan="5" class="empty-state">محصولی پیدا نشد</td></tr>`;
+    $("#productTableBody").innerHTML = `<tr><td colspan="5" class="empty-state">${t("no_results")}</td></tr>`;
     return;
   }
   $("#productTableBody").innerHTML = list.map(product => {
-    const suggestion = suggestedPrice(product, key);
+    const stoppedAttr = isStopped(product) ? ' class="stopped"' : "";
     const image = safeUrl(product.imageUrl);
     const imageCell = image
-      ? `<a class="table-image-link" href="${escapeHtml(image)}" target="_blank" rel="noopener">${imageMarkup(product, "table-image")}<span>مشاهده تصویر</span></a>`
-      : `<span class="muted">ندارد</span>`;
+      ? `<a class="table-image-link" href="${escapeHtml(image)}" target="_blank" rel="noopener">${imageMarkup(product, "table-image")}<span>${t("view_image")}</span></a>`
+      : `<span class="muted">${t("no_image_cell")}</span>`;
     return `<tr>
       <td class="product-name">${escapeHtml(product.name)}</td>
-      <td>${formatToman(representativePrice(product))}</td>
-      <td>${formatToman(product.retailPriceToman)}</td>
-      <td class="suggested">${key ? (suggestion == null ? "قیمت ناموجود" : `${fmt(suggestion)} ${currencies[key][1]}`) : "ارز را انتخاب کنید"}</td>
+      <td${stoppedAttr}>${formatToman(representativePrice(product))}</td>
+      <td${stoppedAttr}>${formatToman(product.retailPriceToman)}</td>
+      <td class="suggested${isStopped(product) ? " stopped" : ""}">${suggestedText(product, key)}</td>
       <td>${imageCell}</td>
     </tr>`;
   }).join("");
@@ -194,18 +212,18 @@ function renderCards() {
   const key = $("#productCurrency").value;
   const list = visibleProducts();
   if (!list.length) {
-    $("#cardsContainer").innerHTML = `<div class="card empty-state search-empty">محصولی پیدا نشد</div>`;
+    $("#cardsContainer").innerHTML = `<div class="card empty-state search-empty">${t("no_results")}</div>`;
     return;
   }
   $("#cardsContainer").innerHTML = list.map(product => {
-    const suggestion = suggestedPrice(product, key);
+    const off = isStopped(product) ? ' class="stopped"' : "";
     return `<article class="product-card card">
       ${imageMarkup(product, "product-card-image")}
       <h3>${escapeHtml(product.name)}</h3>
       <div class="product-card-prices">
-        <div><small>قیمت نماینده در ایران</small><b>${formatToman(representativePrice(product))}</b></div>
-        <div><small>قیمت مصرف‌کننده در ایران</small><b>${formatToman(product.retailPriceToman)}</b></div>
-        <div class="card-suggested"><small>قیمت پیشنهادی فروش</small><b>${key ? (suggestion == null ? "قیمت ناموجود" : `${fmt(suggestion)} ${currencies[key][1]}`) : "ارز را انتخاب کنید"}</b></div>
+        <div><small>${t("th_rep")}</small><b${off}>${formatToman(representativePrice(product))}</b></div>
+        <div><small>${t("th_retail")}</small><b${off}>${formatToman(product.retailPriceToman)}</b></div>
+        <div class="card-suggested"><small>${t("th_suggested")}</small><b${off}>${suggestedText(product, key)}</b></div>
       </div>
     </article>`;
   }).join("");
@@ -217,12 +235,15 @@ function render() {
   const shown = visibleProducts().length;
   const searching = ($("#productSearch")?.value || "").trim() !== "";
   $("#productCount").textContent = searching
-    ? `${fmt(shown)} محصول از ${fmt(products.length)} محصول`
-    : `${fmt(products.length)} محصول در فهرست`;
+    ? t("count_filtered", fmt(shown), fmt(products.length))
+    : t("count_all", fmt(products.length));
   const key = $("#productCurrency").value;
   $("#productRate").textContent = key
-    ? (getRate(key) ? `نرخ ${currencies[key][0]} دریافت شد؛ قیمت‌های پیشنهادی محاسبه شده‌اند.` : "نرخ ارز انتخاب‌شده در دسترس نیست.")
-    : "برای محاسبه قیمت پیشنهادی، ارز را انتخاب کنید.";
+    ? (getRate(key) ? t("rate_ok", cName(key)) : t("rate_missing"))
+    : t("rate_choose");
+  // دکمه دانلود PDF فقط بعد از انتخاب ارز نمایش داده می‌شود
+  $("#downloadPdf").hidden = !key;
+  $("#downloadPdf").disabled = !!key && !getRate(key);
 }
 
 function setView(view) {
@@ -233,6 +254,11 @@ function setView(view) {
   $("#tableView").classList.toggle("selected", table);
   $("#cardView").classList.toggle("selected", !table);
   render();
+}
+
+function showProductsError() {
+  $("#productCount").textContent = t("products_load_failed");
+  $("#productTableBody").innerHTML = `<tr><td colspan="5" class="empty-state">${t("products_file_missing")}</td></tr>`;
 }
 
 async function loadProducts() {
@@ -246,11 +272,25 @@ async function loadProducts() {
       imageUrl: item?.imageUrl ?? "",
       retailPriceToman: validRetail(item?.retailPriceToman)
     }));
+    productsState = "ok";
     render();
   } catch {
-    $("#productCount").textContent = "بارگذاری فهرست محصولات ناموفق بود.";
-    $("#productTableBody").innerHTML = `<tr><td colspan="5" class="empty-state">فایل فهرست محصولات پیدا نشد.</td></tr>`;
+    productsState = "error";
+    showProductsError();
   }
+}
+
+function renderStatus() {
+  const dot = $("#status").previousElementSibling;
+  const states = {
+    loading: ["status_loading", null],
+    live: ["status_live", "#69cf9a"],
+    cached: ["status_cached", "#d9a75e"],
+    none: ["status_none", "#d97878"]
+  };
+  const [key, color] = states[ratesState];
+  $("#status").textContent = t(key);
+  if (color) dot.style.background = color;
 }
 
 async function loadRates() {
@@ -271,25 +311,87 @@ async function loadRates() {
       localStorage.setItem(CACHE, JSON.stringify(parsed.rates));
       localStorage.setItem(META, JSON.stringify(parsed.meta));
     } catch {}
-    $("#status").textContent = "نرخ زنده";
-    $("#status").previousElementSibling.style.background = "#69cf9a";
+    ratesState = "live";
   } catch {
     if (cached.rates && typeof cached.rates === "object") {
       rates = cached.rates;
-      $("#status").textContent = "آخرین نرخ ذخیره‌شده";
-      $("#status").previousElementSibling.style.background = "#d9a75e";
+      ratesState = "cached";
     } else {
-      $("#status").textContent = "نرخ در دسترس نیست";
-      $("#status").previousElementSibling.style.background = "#d97878";
+      ratesState = "none";
     }
   }
+  renderStatus();
   render();
 }
+
+/* ---------- دانلود PDF ---------- */
+function pdfDateText() {
+  const now = new Date();
+  const locale = isEn() ? "en-GB" : "fa-IR";
+  const date = isEn()
+    ? new Intl.DateTimeFormat(locale, { day: "numeric", month: "long", year: "numeric" }).format(now)
+    : new Intl.DateTimeFormat(locale, { year: "numeric", month: "2-digit", day: "2-digit" }).format(now);
+  const time = new Intl.DateTimeFormat(locale, { hour: "2-digit", minute: "2-digit", hour12: false }).format(now);
+  return `${date} - ${time}`;
+}
+
+async function downloadPdf() {
+  const key = $("#productCurrency").value;
+  if (!key || !products.length || !getRate(key)) return;
+  const button = $("#downloadPdf");
+  const label = button.querySelector("span");
+  button.disabled = true;
+  label.textContent = t("download_busy");
+  try {
+    const now = new Date();
+    const pad = (n) => String(n).padStart(2, "0");
+    await window.PriceListPdf.download({
+      rtl: !isEn(),
+      siteName: t("brand_name"),
+      title: t("pdf_title"),
+      dateLabel: t("pdf_date"),
+      dateText: pdfDateText(),
+      currencyLabel: t("pdf_currency"),
+      currencyText: `${cName(key)} (${cUnit(key)})`,
+      headers: {
+        name: t("th_name"),
+        rep: t("th_rep"),
+        retail: t("th_retail"),
+        suggested: `${t("th_suggested")} (${cUnit(key)})`
+      },
+      rows: products.map(product => ({
+        name: product.name,
+        rep: formatToman(representativePrice(product)),
+        retail: formatToman(product.retailPriceToman),
+        suggested: suggestedText(product, key),
+        stopped: isStopped(product)
+      })),
+      pageText: (page, total) => t("pdf_page", fmt(page), fmt(total)),
+      pdfTitle: `${t("brand_name")} - ${t("pdf_title")}`,
+      filename: `price-list-${CURRENCY_EN[key][1]}-${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}.pdf`
+    });
+  } catch (error) {
+    console.error(error);
+    alert(t("pdf_failed"));
+  } finally {
+    label.textContent = t("download_pdf");
+    button.disabled = !getRate($("#productCurrency").value);
+  }
+}
+
+// تغییر زبان: متن‌های پویا دوباره ساخته می‌شوند (متن‌های ثابت را i18n.js عوض می‌کند)
+window.onLangChange = function () {
+  fillCurrencySelect();
+  renderStatus();
+  if (productsState === "ok") render();
+  else if (productsState === "error") showProductsError();
+};
 
 fillCurrencySelect();
 $("#productCurrency").addEventListener("change", render);
 $("#productSearch").addEventListener("input", render);
 $("#tableView").addEventListener("click", () => setView("table"));
 $("#cardView").addEventListener("click", () => setView("cards"));
+$("#downloadPdf").addEventListener("click", downloadPdf);
 loadProducts();
 loadRates();
