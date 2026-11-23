@@ -7,10 +7,13 @@ body:after{content:"";position:fixed;inset:0;pointer-events:none;background:radi
 .topbar{display:flex;justify-content:space-between;align-items:center;gap:14px}
 .brand{display:flex;align-items:center;gap:11px;text-decoration:none;color:inherit;flex-shrink:0}
 .mark{width:42px;height:42px;border:1px solid rgba(218,181,104,.45);border-radius:13px;display:grid;place-items:center;color:#e8cb8b;background:rgba(218,181,104,.07);font-weight:800}
+.mark-icon{width:23px;height:23px;display:block}
 .brand b{display:block;font-size:16px}.brand small{display:block;color:#777b86;font-size:9px;margin-top:2px}
 .top-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
 .nav-link{color:#a5a7af;text-decoration:none;border:1px solid #22252d;border-radius:999px;padding:8px 12px;font-size:10px;transition:.2s}
 .nav-link:hover,.nav-link.active{color:#e7c982;border-color:rgba(218,181,104,.45);background:rgba(218,181,104,.07)}
+.nav-link.products-btn{color:#efe9ff;border-color:rgba(167,139,250,.55);background:linear-gradient(135deg,#6d3fd6,#8f63f0);font-weight:700;box-shadow:0 6px 22px rgba(124,77,230,.28)}
+.nav-link.products-btn:hover,.nav-link.products-btn.active{color:#fff;border-color:rgba(196,174,255,.75);background:linear-gradient(135deg,#7b4de6,#a07bff);box-shadow:0 8px 28px rgba(124,77,230,.42)}
 .status{border:1px solid #20232b;background:#101217;padding:8px 12px;border-radius:999px;color:#9699a3;font-size:9px;display:flex;align-items:center;gap:7px;white-space:nowrap}
 .status i{width:7px;height:7px;border-radius:50%;background:#69cf9a;box-shadow:0 0 10px #69cf9a}
 .hero{text-align:center;max-width:720px;margin:68px auto 38px}
@@ -58,6 +61,14 @@ footer a{color:#c9a966;text-decoration:none}
 .view-control{display:flex;gap:7px}
 .view-button{border:1px solid #2a2d36;background:#11131a;color:#aaaeb8;padding:11px 15px;border-radius:11px;font-size:10px}
 .view-button.selected{border-color:rgba(218,181,104,.5);background:rgba(218,181,104,.1);color:#e6c77f}
+.search-box{margin-top:12px;padding:15px 20px}
+.search-box label{margin-bottom:9px}
+.search-field{position:relative}
+.search-field input{width:100%;background:#11131a;color:#f5f3ed;border:1px solid #252832;border-radius:13px;padding:13px 44px 13px 15px;font:500 13px Vazirmatn;transition:.2s}
+.search-field input::placeholder{color:#6d707a}
+.search-field input:focus{border-color:#ad8a4e;box-shadow:0 0 0 3px rgba(214,179,106,.07)}
+.search-icon{position:absolute;right:15px;top:50%;transform:translateY(-50%);width:18px;height:18px;color:#d6b36a;pointer-events:none}
+.search-empty{grid-column:1/-1}
 .list-summary{display:flex;justify-content:space-between;gap:10px;color:#858893;font-size:9px;margin:16px 3px 10px}
 .table-card{padding:0;overflow:hidden}
 .table-scroll{overflow-x:auto}

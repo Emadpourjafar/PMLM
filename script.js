@@ -1,6 +1,35 @@
-const API = "https://nerkh.jahankhahan.shop/data/live.json";
-const CACHE = "arzem_rates_v4";
-const META = "arzem_rates_meta_v4";
+const API = "https://raw.githubusercontent.com/iran-market/iran-market.github.io/main/data/latest-toman.json";
+const CACHE = "arzem_rates_v5";
+const META = "arzem_rates_meta_v5";
+
+const SYMBOLS = {
+  dollar: "USD_IRR_FREE", euro: "EUR_IRR_FREE", yuan: "CNY_IRR_FREE", aed: "AED_IRR_FREE",
+  lira: "TRY_IRR_FREE", pound: "GBP_IRR_FREE", afn: "AFN_IRR_FREE", rub: "RUB_IRR_FREE",
+  inr: "INR_IRR_FREE", sar: "SAR_IRR_FREE", qar: "QAR_IRR_FREE", kwd: "KWD_IRR_FREE",
+  omr: "OMR_IRR_FREE", iqd: "IQD_IRR_FREE", chf: "CHF_IRR_FREE", cad: "CAD_IRR_FREE",
+  aud: "AUD_IRR_FREE", tether: "USDT_IRR"
+};
+
+// استخراج نرخ‌ها از payload.data.categories؛ رکوردهای stale نادیده گرفته می‌شوند.
+// قیمت‌ها از قبل تومان هستند و تقسیم بر ۱۰ نمی‌شوند.
+function parseRatesPayload(payload) {
+  const categories = payload?.data?.categories;
+  if (!categories || typeof categories !== "object") throw new Error("BAD_DATA");
+  const records = Object.values(categories).flat();
+  const bySymbol = {};
+  records.forEach(record => {
+    if (!record || record.stale === true) return;
+    const price = Number(record.price);
+    if (Number.isFinite(price) && price > 0) bySymbol[record.symbol] = price;
+  });
+  const rates = {};
+  Object.entries(SYMBOLS).forEach(([key, symbol]) => {
+    if (bySymbol[symbol]) rates[key] = bySymbol[symbol];
+  });
+  if (!Object.keys(rates).length) throw new Error("NO_VALID_RATES");
+  const jalali = String(payload.data.generated_at_jalali || "").trim().split(/\s+/);
+  return { rates, meta: { date: jalali[0] || "", time: jalali[1] || "" } };
+}
 
 const currencies = {
   dollar: ["دلار آمریکا", "دلار", "$"],
@@ -142,12 +171,13 @@ async function loadRates() {
       clearTimeout(timeout);
     }
     if (!response.ok) throw new Error("HTTP");
-    const data = await response.json();
-    if (!data.rates || typeof data.rates !== "object") throw new Error("BAD_DATA");
+    const parsed = parseRatesPayload(await response.json());
 
-    localStorage.setItem(CACHE, JSON.stringify(data.rates));
-    localStorage.setItem(META, JSON.stringify({ date: data.date, time: data.time }));
-    applyRates(data.rates, { date: data.date, time: data.time }, true);
+    try {
+      localStorage.setItem(CACHE, JSON.stringify(parsed.rates));
+      localStorage.setItem(META, JSON.stringify(parsed.meta));
+    } catch {}
+    applyRates(parsed.rates, parsed.meta, true);
   } catch {
     if (cached.rates && typeof cached.rates === "object") {
       applyRates(cached.rates, cached.meta, false);
