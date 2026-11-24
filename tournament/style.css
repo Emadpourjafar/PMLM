@@ -1,0 +1,41 @@
+:root{--bg:#f4f5f9;--card:#fff;--tx:#1d2433;--mu:#6b7280;--pr:#4f46e5;--bd:#e5e7eb;--rd:#dc2626}
+*{box-sizing:border-box}
+body{margin:0;font-family:Tahoma,"Vazirmatn",sans-serif;background:var(--bg);color:var(--tx);direction:rtl}
+.wrap{max-width:900px;margin:0 auto;padding:16px}
+h1{font-size:1.4rem;margin:8px 0 16px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:16px;margin-bottom:14px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.tab{padding:8px 14px;border-radius:999px;border:1px solid var(--bd);background:#fff;cursor:pointer;font:inherit}
+.tab.on{background:var(--pr);color:#fff;border-color:var(--pr)}
+.badge{display:inline-block;background:#eef2ff;color:var(--pr);padding:2px 10px;border-radius:999px;font-size:.8rem;margin-inline-start:8px}
+.stat{display:inline-block;background:#f9fafb;border:1px solid var(--bd);border-radius:10px;padding:8px 14px;margin:8px 0}
+.stat b{font-size:1.2rem;margin-inline-start:6px}
+.scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th,td{padding:10px;text-align:right;border-bottom:1px solid var(--bd);white-space:nowrap}
+th{color:var(--mu);font-weight:600;font-size:.85rem}
+tfoot td{font-weight:700;background:#f9fafb}
+.num{font-variant-numeric:tabular-nums}
+.top.gold{background:#fffbeb}.top.silver{background:#f3f4f6}.top.bronze{background:#fff4ec}
+.medal{font-weight:700}
+.empty{color:var(--mu);text-align:center;padding:20px}
+input,select,button{font:inherit}
+input,select{padding:9px;border:1px solid var(--bd);border-radius:8px;background:#fff}
+button{padding:9px 14px;border:0;border-radius:8px;background:var(--pr);color:#fff;cursor:pointer}
+button.sec{background:#e5e7eb;color:var(--tx)}button.del{background:var(--rd)}
+button.sm{padding:5px 10px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.row input{flex:1;min-width:120px}
+.step{display:inline-flex;gap:4px;align-items:center}
+.step input{width:70px;text-align:center}
+.step button{width:32px;height:32px;padding:0;font-size:1.1rem}
+.err{color:var(--rd);margin:8px 0}
+dialog{border:0;border-radius:14px;padding:20px;max-width:420px;width:92%;direction:rtl}
+dialog::backdrop{background:#0006}
+dialog label{display:block;padding:8px 0}
+.print-only{display:none}
+@media print{
+  body{background:#fff}.screen{display:none!important}.print-only{display:block}
+  .noprint{display:none!important}.top{background:none!important}
+  table{font-size:13px}
+}
