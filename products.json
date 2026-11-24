@@ -290,7 +290,7 @@
     "name": "کمپلکس پپتید جمع کننده منافذ باز",
     "representativePriceToman": null,
     "retailPriceToman": 3352800.0,
-    "imageUrl": null,
+    "imageUrl": "",
     "sourceRow": 45
   },
   {
@@ -374,28 +374,28 @@
     "name": "تستر ادوپرفیوم­‌های ۱۰۰ میل",
     "representativePriceToman": null,
     "retailPriceToman": 331513.0,
-    "imageUrl": null,
+    "imageUrl": "",
     "sourceRow": 59
   },
   {
     "name": "تستر پرفیوم­‌های ۱۰۰ میل",
     "representativePriceToman": null,
     "retailPriceToman": 428541.0,
-    "imageUrl": null,
+    "imageUrl": "",
     "sourceRow": 60
   },
   {
     "name": "بادی اسپلش‌ها",
     "representativePriceToman": null,
-    "retailPriceToman": 870271.0,
-    "imageUrl": null,
+    "retailPriceToman": 1244487.0,
+    "imageUrl": "",
     "sourceRow": 61
   },
   {
     "name": "دئودورانت رولی",
     "representativePriceToman": null,
     "retailPriceToman": 566617.0,
-    "imageUrl": null,
+    "imageUrl": "",
     "sourceRow": 62
   },
   {
@@ -528,7 +528,7 @@
     "name": "پد آرایش پاک کن ۱۲۰ عددی",
     "representativePriceToman": null,
     "retailPriceToman": null,
-    "imageUrl": null,
+    "imageUrl": "",
     "sourceRow": 83
   },
   {

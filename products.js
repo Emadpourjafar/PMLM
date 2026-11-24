@@ -261,11 +261,90 @@ function showProductsError() {
   $("#productTableBody").innerHTML = `<tr><td colspan="5" class="empty-state">${t("products_file_missing")}</td></tr>`;
 }
 
+/* ---------- خواندن لیست محصولات از فایل اکسل (products.xlsx) ----------
+   اگر اکسل در دسترس نبود، فایل products.json جایگزین می‌شود. */
+const XLSX_FILE = "products.xlsx";
+const XLSX_LIB = "xlsx.mini.min.js?v=5";
+
+function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = src;
+    script.onload = resolve;
+    script.onerror = () => reject(new Error("LIB"));
+    document.head.appendChild(script);
+  });
+}
+
+function excelPrice(cell) {
+  if (!cell) return null;
+  if (cell.t === "n") return cell.v;
+  if (cell.t === "s") {
+    const n = Number(normalizeDigits(cell.v).replace(/[,٬\s]/g, ""));
+    return Number.isFinite(n) ? n : null;
+  }
+  return null; // خطای فرمول (#REF! و ...) → بدون قیمت
+}
+
+// ستون‌ها از روی عنوان‌ها پیدا می‌شوند: «نام محصول» و «قیمت مصرف‌کننده»؛
+// عکس = لینک داخل ستون سمت راستِ ستون نام (کلمه «تصویر»)
+function excelRows(workbook) {
+  const has = (text, words) => words.every(word => normalizeText(text).includes(word));
+  for (const sheetName of workbook.SheetNames) {
+    const sheet = workbook.Sheets[sheetName];
+    if (!sheet || !sheet["!ref"]) continue;
+    const range = XLSX.utils.decode_range(sheet["!ref"]);
+    const cell = (r, c) => sheet[XLSX.utils.encode_cell({ r, c })];
+    let headerRow = -1, nameCol = -1, retailCol = -1;
+    for (let r = range.s.r; r <= Math.min(range.e.r, range.s.r + 9) && headerRow < 0; r++) {
+      let nameAt = -1, retailAt = -1;
+      for (let c = range.s.c; c <= range.e.c; c++) {
+        const text = cell(r, c) ? String(cell(r, c).v ?? "") : "";
+        if (nameAt < 0 && has(text, ["نام", "محصول"])) nameAt = c;
+        if (retailAt < 0 && has(text, ["مصرف"])) retailAt = c;
+      }
+      if (nameAt >= 0 && retailAt >= 0) { headerRow = r; nameCol = nameAt; retailCol = retailAt; }
+    }
+    if (headerRow < 0) continue;
+    const imageCol = nameCol > range.s.c ? nameCol - 1 : -1;
+    const list = [];
+    for (let r = headerRow + 1; r <= range.e.r; r++) {
+      const nameCell = cell(r, nameCol);
+      const name = nameCell ? String(nameCell.v ?? "").trim() : "";
+      if (!name) continue;
+      const linkCell = imageCol >= 0 ? cell(r, imageCol) : null;
+      list.push({
+        name,
+        imageUrl: linkCell?.l?.Target || "",
+        retailPriceToman: excelPrice(cell(r, retailCol))
+      });
+    }
+    if (list.length) return list;
+  }
+  return [];
+}
+
+async function loadProductsRaw() {
+  try {
+    const [response] = await Promise.all([
+      fetch(XLSX_FILE, { cache: "no-cache" }),
+      typeof XLSX === "undefined" ? loadScript(XLSX_LIB) : null
+    ]);
+    if (!response.ok) throw new Error("XLSX");
+    const workbook = XLSX.read(await response.arrayBuffer(), { type: "array" });
+    const list = excelRows(workbook);
+    if (list.length) return list;
+  } catch (error) {
+    console.warn("Excel unavailable, falling back to products.json", error);
+  }
+  const response = await fetch("products.json", { cache: "no-cache" });
+  if (!response.ok) throw new Error("PRODUCTS");
+  return response.json();
+}
+
 async function loadProducts() {
   try {
-    const response = await fetch("products.json", { cache: "no-cache" });
-    if (!response.ok) throw new Error("PRODUCTS");
-    const raw = await response.json();
+    const raw = await loadProductsRaw();
     // قیمت نماینده/پیشنهادی از فایل خوانده نمی‌شود؛ فقط name، imageUrl و retailPriceToman
     products = (Array.isArray(raw) ? raw : []).map(item => ({
       name: String(item?.name ?? ""),
