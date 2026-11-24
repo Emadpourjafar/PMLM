@@ -1,1 +1,129 @@
+<!doctype html>
+<html lang="fa" dir="rtl"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>مدیریت تورنومنت</title><link rel="stylesheet" href="../style.css"></head>
+<body><div class="wrap">
 
+<div id="login" class="card screen" style="max-width:360px;margin:60px auto;display:none">
+  <h1>ورود مدیر</h1>
+  <div class="row" style="flex-direction:column;align-items:stretch">
+    <input id="u" placeholder="نام کاربری" autocomplete="username" dir="ltr">
+    <input id="p" type="password" placeholder="رمز عبور" autocomplete="current-password" dir="ltr" onkeydown="if(event.key==='Enter')login()">
+    <button onclick="login()">ورود</button>
+  </div>
+  <div class="err" id="lerr"></div>
+</div>
+
+<div id="panel" style="display:none">
+  <div class="screen">
+    <div class="row" style="justify-content:space-between"><h1>⚙️ مدیریت تورنومنت</h1><button class="sec" onclick="firebase.auth().signOut()">خروج</button></div>
+    <div class="card"><b>تورنومنت جدید</b>
+      <div class="row" style="margin-top:8px">
+        <input id="tn" placeholder="نام تورنومنت">
+        <select id="tt"><option value="sales">روز فروش</option><option value="present">روز پرزنت</option></select>
+        <button onclick="createT()">ایجاد</button>
+      </div>
+      <div class="err" id="terr"></div>
+    </div>
+    <div class="tabs" id="tabs"></div>
+    <div id="view"></div>
+  </div>
+  <div class="print-only" id="print"></div>
+</div>
+
+<dialog id="dlg">
+  <b>حداکثر ۳ تورنومنت مجاز است.</b>
+  <p>تورنومنت جدید جایگزین کدام شود؟ (اطلاعات آن حذف می‌شود)</p>
+  <div id="opts"></div>
+  <div class="row" style="margin-top:12px"><button onclick="confirmReplace()">جایگزین کن</button><button class="sec" onclick="dlg.close()">انصراف</button></div>
+</dialog>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="../firebase-config.js"></script><script src="../common.js"></script>
+<script>
+const $ = id => document.getElementById(id), MAX = 3, DOMAIN = '@tournament.local';
+let list = [], cur = null, editId = null, pending = null, unsub = null;
+
+// ---- ورود ----
+async function login() {
+  $('lerr').textContent = '';
+  try { await firebase.auth().signInWithEmailAndPassword($('u').value.trim().toLowerCase() + DOMAIN, $('p').value); }
+  catch (e) { $('lerr').textContent = 'نام کاربری یا رمز عبور اشتباه است'; }
+}
+firebase.auth().onAuthStateChanged(user => {
+  $('login').style.display = user ? 'none' : 'block';
+  $('panel').style.display = user ? 'block' : 'none';
+  if (unsub) { unsub(); unsub = null; }
+  if (user) unsub = COL.onSnapshot(s => {
+    list = s.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0)); render();
+  });
+});
+
+// ---- تورنومنت ----
+function createT() {
+  const name = $('tn').value.trim(); $('terr').textContent = '';
+  if (!name) { $('terr').textContent = 'نام تورنومنت را وارد کنید'; return; }
+  pending = { name, type: $('tt').value, rows: [], createdAt: Date.now() };
+  if (list.length < MAX) return saveNew();
+  $('opts').innerHTML = list.map((t, i) => `<label><input type="radio" name="rep" value="${t.id}" ${i ? '' : 'checked'}> ${esc(t.name)} <span class="badge">${TYPES[t.type].label}</span></label>`).join('');
+  $('dlg').showModal();
+}
+async function saveNew(replaceId) {
+  const batch = db.batch();
+  if (replaceId) batch.delete(COL.doc(replaceId));
+  const ref = COL.doc(); batch.set(ref, pending); await batch.commit();
+  cur = ref.id; pending = null; $('tn').value = '';
+}
+async function confirmReplace() {
+  const id = document.querySelector('input[name=rep]:checked').value;
+  $('dlg').close(); await saveNew(id);
+}
+async function delT(id) {
+  if (confirm('این تورنومنت و همه‌ی رکوردهایش حذف شود؟')) await COL.doc(id).delete();
+}
+
+// ---- رکوردها ----
+const saveRows = (t, rows) => COL.doc(t.id).update({ rows });
+const curT = () => list.find(t => t.id === cur);
+async function addRow() {
+  const t = curT(), name = $('rn').value.trim(), city = $('rc').value.trim(), value = parseInt($('rv').value) || 0;
+  if (!name) { $('rerr').textContent = 'نام را وارد کنید'; return; }
+  const rows = [...t.rows];
+  if (editId) { const r = rows.find(x => x.id === editId); Object.assign(r, { name, city, value }); }
+  else rows.push({ id: Date.now() + '' + Math.random().toString(36).slice(2, 6), name, city, value });
+  editId = null; await saveRows(t, rows);
+}
+function editRow(id) { const r = curT().rows.find(x => x.id === id); editId = id; render(); $('rn').value = r.name; $('rc').value = r.city; $('rv').value = r.value; $('rn').focus(); }
+function cancelEdit() { editId = null; render(); }
+async function delRow(id) { if (confirm('این رکورد حذف شود؟')) { const t = curT(); await saveRows(t, t.rows.filter(r => r.id !== id)); } }
+async function setVal(id, v) { const t = curT(); await saveRows(t, t.rows.map(r => r.id === id ? { ...r, value: Math.max(0, parseInt(v) || 0) } : r)); }
+const step = (id, d) => { const r = curT().rows.find(x => x.id === id); setVal(id, r.value + d); };
+
+function act(r, buttons) {
+  const t = curT();
+  if (!buttons) return t.type === 'present'
+    ? `<span class="step"><button class="sec" onclick="step('${r.id}',-1)">−</button><input type="number" min="0" value="${r.value}" onchange="setVal('${r.id}',this.value)"><button onclick="step('${r.id}',1)">+</button></span>`
+    : nf(r.value);
+  return `<button class="sm sec" onclick="editRow('${r.id}')">ویرایش</button> <button class="sm del" onclick="delRow('${r.id}')">حذف</button>`;
+}
+
+function render() {
+  if (!list.length) { $('tabs').innerHTML = ''; $('view').innerHTML = '<p class="empty">هنوز تورنومنتی نساخته‌اید.</p>'; $('print').innerHTML = ''; return; }
+  if (!list.find(t => t.id === cur)) cur = list[0].id;
+  $('tabs').innerHTML = list.map(t => `<button class="tab ${t.id === cur ? 'on' : ''}" onclick="cur='${t.id}';editId=null;render()">${esc(t.name)}</button>`).join('') + `<span style="color:var(--mu);align-self:center">${nf(list.length)} از ${nf(MAX)}</span>`;
+  const t = curT(), T = TYPES[t.type];
+  $('view').innerHTML = `<div class="card">
+    <div class="row" style="justify-content:space-between"><h2 style="margin:0">${esc(t.name)}<span class="badge">${T.label}</span></h2>
+      <span><button class="sm" onclick="window.print()">📄 خروجی PDF</button> <button class="sm del" onclick="delT('${t.id}')">حذف تورنومنت</button></span></div>
+    <div class="stat">${T.sum}:<b>${nf(total(t.rows))}</b></div>
+    <div class="row" style="margin:10px 0"><input id="rn" placeholder="نام و نام‌خانوادگی"><input id="rc" placeholder="شهر">
+      <input id="rv" type="number" min="0" placeholder="${T.col}" onkeydown="if(event.key==='Enter')addRow()">
+      <button onclick="addRow()">${editId ? 'ذخیره' : 'افزودن'}</button>${editId ? '<button class="sec" onclick="cancelEdit()">انصراف</button>' : ''}</div>
+    <div class="err" id="rerr"></div>
+    <div class="scroll">${tableHTML(t, act)}</div></div>`;
+  $('print').innerHTML = `<h1>${esc(t.name)} — ${T.label}</h1><p>تاریخ: ${new Date().toLocaleDateString('fa-IR')}</p>` + tableHTML(t);
+}
+</script></body></html>
