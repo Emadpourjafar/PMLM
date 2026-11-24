@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="fa" dir="rtl"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>تورنومنت</title><link rel="stylesheet" href="style.css"></head>
+<body><div class="wrap">
+<h1>🏆 تورنومنت</h1>
+<div class="tabs" id="tabs"></div>
+<div id="view"></div>
+</div>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script><script src="common.js"></script>
+<script>
+let list = [], cur = null;
+function render() {
+  const tabs = document.getElementById('tabs'), view = document.getElementById('view');
+  if (!list.length) { tabs.innerHTML = ''; view.innerHTML = '<p class="empty">تورنومنتی وجود ندارد.</p>'; return; }
+  if (!list.find(t => t.id === cur)) cur = list[0].id;
+  tabs.innerHTML = list.map(t => `<button class="tab ${t.id === cur ? 'on' : ''}" onclick="cur='${t.id}';render()">${esc(t.name)}</button>`).join('');
+  const t = list.find(x => x.id === cur), T = TYPES[t.type];
+  view.innerHTML = `<div class="card"><h2 style="margin:0">${esc(t.name)}<span class="badge">${T.label}</span></h2>
+    <div class="stat">${T.sum}:<b>${nf(total(t.rows))}</b></div>
+    <div class="scroll">${tableHTML(t)}</div></div>`;
+}
+COL.onSnapshot(s => { list = s.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0)); render(); },
+  e => document.getElementById('view').innerHTML = '<p class="err">خطا در دریافت اطلاعات</p>');
+</script></body></html>
