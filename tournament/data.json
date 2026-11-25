@@ -1,1 +1,11 @@
-{"tournaments":[],"updated":""}
+{
+ "tournaments": [
+  {
+   "id": "mwvdpkcbs5fp",
+   "name": "تورنومنت فروش",
+   "type": "sales",
+   "rows": []
+  }
+ ],
+ "updated": "2026-11-25T00:22:04.934Z"
+}
