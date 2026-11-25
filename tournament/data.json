@@ -1,30 +1,4 @@
 {
- "tournaments": [
-  {
-   "id": "mwvdvjwtrcgd",
-   "name": "سلام",
-   "type": "present",
-   "rows": [
-    {
-     "id": "mwvdvs9qmqvg",
-     "name": "عماد پورجعفر",
-     "city": "رشت",
-     "value": 2
-    },
-    {
-     "id": "mwvdwe1lubir",
-     "name": "نیلوفر عظیمی",
-     "city": "رشت",
-     "value": 2
-    },
-    {
-     "id": "mwvdwnvltz4o",
-     "name": "زهرا اسکندری",
-     "city": "انزلی",
-     "value": 3
-    }
-   ]
-  }
- ],
- "updated": "2026-11-25T00:48:53.507Z"
+ "tournaments": [],
+ "updated": "2026-11-25T00:48:55.627Z"
 }
