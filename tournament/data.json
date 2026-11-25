@@ -1,4 +1,11 @@
 {
- "tournaments": [],
- "updated": "2026-11-25T00:48:55.627Z"
+ "tournaments": [
+  {
+   "id": "mwveogs29gk2",
+   "name": "جنگجویان",
+   "type": "present",
+   "rows": []
+  }
+ ],
+ "updated": "2026-11-25T00:49:13.240Z"
 }
