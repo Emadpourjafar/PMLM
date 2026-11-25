@@ -1,0 +1,86 @@
+:root{--bg:#f4f5f9;--card:#fff;--tx:#1d2433;--mu:#6b7280;--pr:#4f46e5;--bd:#e5e7eb;--rd:#dc2626}
+*{box-sizing:border-box}
+body{margin:0;font-family:Tahoma,"Vazirmatn",sans-serif;background:var(--bg);color:var(--tx);direction:rtl}
+.wrap{max-width:900px;margin:0 auto;padding:16px}
+h1{font-size:1.4rem;margin:8px 0 16px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:16px;margin-bottom:14px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.tab{padding:8px 14px;border-radius:999px;border:1px solid var(--bd);background:#fff;cursor:pointer;font:inherit}
+.tab.on{background:var(--pr);color:#fff;border-color:var(--pr)}
+.badge{display:inline-block;background:#eef2ff;color:var(--pr);padding:2px 10px;border-radius:999px;font-size:.8rem;margin-inline-start:8px}
+.stat{display:inline-block;background:#f9fafb;border:1px solid var(--bd);border-radius:10px;padding:8px 14px;margin:8px 0}
+.stat b{font-size:1.2rem;margin-inline-start:6px}
+.scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th,td{padding:10px;text-align:right;border-bottom:1px solid var(--bd);white-space:nowrap}
+th{color:var(--mu);font-weight:600;font-size:.85rem}
+tfoot td{font-weight:700;background:#f9fafb}
+.num{font-variant-numeric:tabular-nums}
+.top.gold{background:#fffbeb}.top.silver{background:#f3f4f6}.top.bronze{background:#fff4ec}
+.medal{font-weight:700}
+.empty{color:var(--mu);text-align:center;padding:20px}
+input,select,button{font:inherit}
+input,select{padding:9px;border:1px solid var(--bd);border-radius:8px;background:#fff}
+button{padding:9px 14px;border:0;border-radius:8px;background:var(--pr);color:#fff;cursor:pointer}
+button.sec{background:#e5e7eb;color:var(--tx)}button.del{background:var(--rd)}
+button.sm{padding:5px 10px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.row input{flex:1;min-width:120px}
+.step{display:inline-flex;gap:4px;align-items:center}
+.step input{width:70px;text-align:center}
+.step button{width:32px;height:32px;padding:0;font-size:1.1rem}
+.err{color:var(--rd);margin:8px 0}
+dialog{border:0;border-radius:14px;padding:20px;max-width:420px;width:92%;direction:rtl}
+dialog::backdrop{background:#0006}
+dialog label{display:block;padding:8px 0}
+.print-only{display:none}
+.cr{max-width:900px;margin:8px auto 24px;padding:0 16px;text-align:center;color:var(--mu);font-size:.62rem;opacity:.8}
+@media print{
+  body{background:#fff}.screen{display:none!important}.print-only{display:block}
+  .noprint{display:none!important}.top{background:none!important}
+  table{font-size:13px}
+}
+.sw{width:34px;height:34px;border-radius:50%;padding:0;border:2px solid #fff;box-shadow:0 0 0 1px var(--bd);cursor:pointer}
+.sw.on{box-shadow:0 0 0 3px var(--pr)}
+@media print{
+  @page{size:A4;margin:12mm}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .pdf{font-family:Tahoma,Vazirmatn,sans-serif;color:#1d2433}
+  .pdf .ph{position:relative;overflow:hidden;background:linear-gradient(120deg,#3730a3,#6d28d9 55%,#be185d);color:#fff;border-radius:18px;padding:24px 28px;display:flex;justify-content:space-between;align-items:center}
+  .pdf .ph::before{content:"";position:absolute;width:220px;height:220px;border-radius:50%;background:#ffffff1a;top:-90px;left:-60px}
+  .pdf .ph::after{content:"";position:absolute;width:140px;height:140px;border-radius:50%;background:#ffffff14;bottom:-70px;left:150px}
+  .pdf .ph>*{position:relative;z-index:1}
+  .pdf .k{display:inline-block;background:#ffffff2e;border:1px solid #ffffff55;border-radius:99px;padding:4px 14px;font-size:12px;font-weight:700}
+  .pdf .ph h1{margin:10px 0 6px;font-size:28px}
+  .pdf .pt{opacity:.92;font-size:13px}
+  .pdf .ps{display:flex;gap:10px;margin:16px 0 6px}
+  .pdf .ps div{flex:1;border-radius:14px;padding:12px 14px;background:#f5f7ff;border:1px solid #e0e7ff;border-top:5px solid #6366f1}
+  .pdf .ps .c2{border-top-color:#a855f7}.pdf .ps .c3{border-top-color:#f59e0b}
+  .pdf .ps small{display:block;color:#6b7280;font-size:11px;margin-bottom:3px}.pdf .ps b{font-size:18px}
+  .pdf .sec{margin:18px 0 6px;font-weight:700;color:#4338ca;font-size:14px;display:flex;align-items:center;gap:10px}
+  .pdf .sec::after{content:"";flex:1;height:2px;background:linear-gradient(to left,#c7d2fe,transparent)}
+  .pdf .pod{display:flex;justify-content:center;align-items:flex-end;gap:10px;padding:18px 10px 0;background:linear-gradient(#f5f3ff,#fff);border-radius:16px;page-break-inside:avoid}
+  .pdf .pc{flex:1;max-width:200px;text-align:center}
+  .pdf .pn{font-weight:700;font-size:14px}.pdf .pcty{color:#6b7280;font-size:11px}
+  .pdf .pv{font-weight:800;font-size:16px;margin:3px 0 6px;color:#4338ca}
+  .pdf .pb{border-radius:12px 12px 0 0;color:#fff;display:flex;flex-direction:column;align-items:center;padding-top:10px}
+  .pdf .pb span{font-size:32px;font-weight:800;line-height:1}.pdf .pb small{font-size:12px;font-weight:700}
+  .pdf .gold .pb{height:118px;background:linear-gradient(#fbbf24,#b45309)}
+  .pdf .silver .pb{height:88px;background:linear-gradient(#cbd5e1,#64748b)}
+  .pdf .bronze .pb{height:66px;background:linear-gradient(#fdba74,#9a3412)}
+  .pdf table{width:100%;border-collapse:separate;border-spacing:0 6px;font-size:13px}
+  .pdf th{background:#eef2ff;color:#4338ca;padding:10px 12px;font-size:12px;text-align:right}
+  .pdf th:first-child{border-radius:0 10px 10px 0}.pdf th:last-child{border-radius:10px 0 0 10px}
+  .pdf td{background:#f9fafb;padding:10px 12px;border:0}
+  .pdf td:first-child{border-radius:0 10px 10px 0}.pdf td:last-child{border-radius:10px 0 0 10px}
+  .pdf .nm{font-weight:700}.pdf .vc{width:32%}
+  .pdf tr{page-break-inside:avoid}
+  .pdf .bd{display:inline-block;width:26px;height:26px;line-height:26px;text-align:center;border-radius:50%;background:#e5e7eb;font-weight:700;font-size:12px}
+  .pdf .vb{height:5px;background:#e5e7eb;border-radius:9px;margin-top:5px;overflow:hidden}
+  .pdf .vb i{display:block;height:100%;background:linear-gradient(90deg,#6366f1,#ec4899);border-radius:9px}
+  .pdf tr.gold td{background:#fff4cc}.pdf tr.gold .bd{background:#f59e0b;color:#fff}
+  .pdf tr.silver td{background:#eef1f5}.pdf tr.silver .bd{background:#94a3b8;color:#fff}
+  .pdf tr.bronze td{background:#ffe9db}.pdf tr.bronze .bd{background:#c2410c;color:#fff}
+  .pdf .tot{display:flex;justify-content:space-between;background:linear-gradient(120deg,#4f46e5,#7c3aed);color:#fff;border-radius:14px;padding:14px 22px;font-weight:700;margin-top:10px;font-size:16px}
+  .pdf .pf{text-align:center;color:#9ca3af;font-size:11px;margin-top:18px;border-top:1px dashed #d1d5db;padding-top:10px}
+}
