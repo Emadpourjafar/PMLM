@@ -45,15 +45,29 @@ h1{font-size:2rem;margin:12px 0 4px;background:linear-gradient(90deg,#fde68a,#fb
 .timer b{font-size:2rem;letter-spacing:2px;direction:ltr;display:inline-block}
 .timer.hot b{color:#f87171;animation:bl 1s infinite}@keyframes bl{50%{opacity:.45}}
 .timer.end{color:#fde68a;font-weight:700;font-size:1.1rem}
+.sbar{position:relative;display:flex;align-items:center;margin:0 0 14px}
+.sbar[hidden]{display:none}
+.sbar input{width:100%;padding:13px 44px;font:inherit;font-size:16px;color:#fff;background:#ffffff12;border:1px solid #ffffff26;border-radius:16px;outline:0;direction:rtl;transition:border-color .2s,background .2s}
+.sbar input::placeholder{color:#a5b4fc}
+.sbar input:focus{border-color:#818cf8;background:#ffffff1c}
+.sbar .si{position:absolute;inset-inline-start:15px;pointer-events:none;opacity:.7}
+.sbar .sx{position:absolute;inset-inline-end:10px;width:28px;height:28px;padding:0;border:0;border-radius:50%;background:#ffffff26;color:#fff;font:inherit;font-size:.8rem;line-height:1;cursor:pointer}
+.sbar .sx[hidden]{display:none}
+.rc{text-align:center;color:#a5b4fc;font-size:.8rem;margin:0 0 10px}
+.calm .it,.calm .bar{animation:none}
+.it.tp1{border-color:#fbbf2466;background:#fbbf2418}
+.it.tp2{border-color:#e2e8f055;background:#e2e8f012}
+.it.tp3{border-color:#fdba7455;background:#fdba7412}
+.rk.m{background:none;font-size:1.5rem}
 </style></head>
-<body><div class="wrap" id="app"></div>
+<body><div class="wrap"><div id="app"></div><div class="sbar" id="sbar" hidden><span class="si">🔍</span><input id="sq" type="text" inputmode="search" enterkeyhint="search" autocomplete="off" placeholder="جستجوی نام یا شهر…"><button class="sx" id="sx" type="button" aria-label="پاک کردن جستجو" hidden>✕</button></div><div id="board"></div></div>
 <div class="cr"><span dir="ltr">Copyright: Emad Pourjafar</span></div>
 <script src="common.js"></script>
 <script>
-const q = new URLSearchParams(location.search).get('t'), app = document.getElementById('app');
-let first = true, sig = '', lastEnded = null, base = null, list = [], updated = '';
+const q = new URLSearchParams(location.search).get('t'), app = document.getElementById('app'), board = document.getElementById('board'), sbar = document.getElementById('sbar'), sqEl = document.getElementById('sq'), sxEl = document.getElementById('sx');
+let first = true, sig = '', lastEnded = null, base = null, list = [], updated = '', sq = '';
 try { base = JSON.parse(localStorage.getItem('rk_' + q)); } catch (e) {}
-const msg = (i, t) => { setConfetti(false); app.innerHTML = `<div class="msg"><div>${i}</div><h2>${t}</h2></div>`; };
+const msg = (i, t) => { setConfetti(false); sbar.hidden = true; board.innerHTML = ''; app.innerHTML = `<div class="msg"><div>${i}</div><h2>${t}</h2></div>`; };
 const mv = (id, rank) => { if (!base || base[id] == null || base[id] === rank) return ''; const d = base[id] - rank; return `<span class="mv ${d > 0 ? 'up' : 'dn'}">${d > 0 ? '▲' : '▼'} ${nf(Math.abs(d))}</span>`; };
 const gid = id => document.getElementById(id);
 function tmBox(t) {
@@ -76,20 +90,38 @@ function endPill(t) {
   const e = new Date(t.endsAt);
   return `<span class="live">🏁 پایان مسابقه: ساعت ${e.toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' })} · ${e.toLocaleDateString('fa-IR')}</span>`;
 }
+const itemHTML = (r, idx, rows, max, delay) => {
+  const gap = idx > 0 ? rows[idx - 1].value - r.value : 0, m = MEDAL[r.rank];
+  return `<div class="it${m ? ' tp' + r.rank : ''}" style="animation-delay:${delay}ms"><div class="rk${m ? ' m' : ''}">${m ? m[0] : nf(r.rank)}</div><div class="mid"><div class="nm">${esc(r.name)}${mv(r.id, r.rank)}</div><small>${esc(r.city)}</small><div class="pb"><i style="width:${Math.max(3, r.value / max * 100)}%"></i></div></div><div class="vl2"><span data-n="${r.value}">${nf(r.value)}</span>${gap > 0 ? `<small>↑ ${nf(gap)} فاصله</small>` : ''}</div></div>`;
+};
+// فقط بخش جدول/سکو را دوباره می‌کشد؛ کادر جستجو بیرون از آن است تا هنگام تایپ فوکوس نپرد
+function renderBoard(anim) {
+  const t = list.find(x => x.id === q); if (!t) return;
+  const rows = ranked(t.rows); if (!rows.length) return;
+  const max = rows[0].value || 1, foot = `<div class="foot">${updated ? 'آخرین به‌روزرسانی: ' + new Date(updated).toLocaleString('fa-IR') + ' · ' : ''}نتایج هر ۵ ثانیه تازه می‌شود</div>`;
+  board.className = anim ? '' : 'calm';
+  if (normQ(sq)) { // حالت جستجو: لیست تخت با رتبه‌ی واقعی (از کل شرکت‌کنندگان)
+    const hits = rows.map((r, i) => [r, i]).filter(([r]) => matchRow(r, sq));
+    board.innerHTML = hits.length
+      ? `<div class="rc">${nf(hits.length)} نتیجه از ${nf(rows.length)} شرکت‌کننده</div>` + hits.map(([r, i], k) => itemHTML(r, i, rows, max, Math.min(k, 8) * 40)).join('') + foot
+      : `<div class="msg" style="padding:36px 10px"><div>🔍</div><h3>نتیجه‌ای برای «${esc(sq.trim())}» پیدا نشد</h3></div>` + foot;
+    return;
+  }
+  const top = rows.slice(0, 3), rest = rows.slice(3);
+  const order = top.length === 3 ? [top[1], top[0], top[2]] : top.length === 2 ? [top[1], top[0]] : top;
+  const pod = order.map(r => `<div class="pd r${r.rank}">${r.rank === 1 ? '<div class="crown">👑</div>' : ''}<div class="nm">${esc(r.name)}</div><div class="ct">${esc(r.city)}${mv(r.id, r.rank)}</div><div class="vl" data-n="${r.value}">${nf(r.value)}</div><div class="bar">${MEDAL[r.rank][0]}</div></div>`).join('');
+  board.innerHTML = `<div class="podium">${pod}</div><div>${rest.map((r, i) => itemHTML(r, i + 3, rows, max, i * 60)).join('')}</div>` + foot;
+}
 function render() {
   if (!q) return msg('🔗', 'لینک اختصاصی تورنومنت را از مدیر دریافت کنید');
   const t = list.find(x => x.id === q);
   if (!t) return msg('🔍', 'این تورنومنت پیدا نشد یا حذف شده است');
   const T = TYPES[t.type], rows = ranked(t.rows); lastEnded = isEnded(t); applyTheme(t);
   if (!rows.length) return msg('🔥', 'هنوز رکوردی ثبت نشده؛ مسابقه به‌زودی شروع می‌شود!');
-  const top = rows.slice(0, 3), rest = rows.slice(3), max = rows[0].value || 1;
-  const order = top.length === 3 ? [top[1], top[0], top[2]] : top.length === 2 ? [top[1], top[0]] : top;
-  const pod = order.map(r => `<div class="pd r${r.rank}">${r.rank === 1 ? '<div class="crown">👑</div>' : ''}<div class="nm">${esc(r.name)}</div><div class="ct">${esc(r.city)}${mv(r.id, r.rank)}</div><div class="vl" data-n="${r.value}">${nf(r.value)}</div><div class="bar">${MEDAL[r.rank][0]}</div></div>`).join('');
-  const lst = rest.map((r, i) => { const gap = rows[i + 2].value - r.value; return `<div class="it" style="animation-delay:${i * 60}ms"><div class="rk">${nf(r.rank)}</div><div class="mid"><div class="nm">${esc(r.name)}${mv(r.id, r.rank)}</div><small>${esc(r.city)}</small><div class="pb"><i style="width:${Math.max(3, r.value / max * 100)}%"></i></div></div><div class="vl2"><span data-n="${r.value}">${nf(r.value)}</span>${gap > 0 ? `<small>↑ ${nf(gap)} فاصله</small>` : ''}</div></div>`; }).join('');
+  const max = rows[0].value || 1;
   app.innerHTML = `<div class="hero">${lastEnded ? endPill(t) : '<span class="live"><i></i>زنده</span>'}<h1>${esc(t.name)}</h1><div class="type">${T.label}</div>${tmBox(t)}</div>
-  <div class="stats"><div class="st"><small>${T.sum}</small><b data-n="${total(t.rows)}">${nf(total(t.rows))}</b></div><div class="st"><small>شرکت‌کنندگان</small><b>${nf(rows.length)}</b></div><div class="st"><small>بالاترین رکورد</small><b data-n="${max}">${nf(max)}</b></div></div>
-  <div class="podium">${pod}</div><div>${lst}</div>
-  <div class="foot">${updated ? 'آخرین به‌روزرسانی: ' + new Date(updated).toLocaleString('fa-IR') + ' · ' : ''}نتایج هر ۵ ثانیه تازه می‌شود</div>`;
+  <div class="stats"><div class="st"><small>${T.sum}</small><b data-n="${total(t.rows)}">${nf(total(t.rows))}</b></div><div class="st"><small>شرکت‌کنندگان</small><b>${nf(rows.length)}</b></div><div class="st"><small>بالاترین رکورد</small><b data-n="${max}">${nf(max)}</b></div></div>`;
+  sbar.hidden = false; renderBoard(!sq);
   if (first) { first = false; if (!base) base = {}; countUp(); }
   setConfetti(lastEnded);
   try { localStorage.setItem('rk_' + q, JSON.stringify(Object.fromEntries(rows.map(r => [r.id, r.rank])))); } catch (e) {}
@@ -138,5 +170,8 @@ async function load() {
   try { const t0 = Date.now(), res = await fetch('data.json?t=' + t0, { cache: 'no-store' }), sk = skewFrom(res, t0, Date.now()); if (sk !== null) SKEW = sk; const d = await res.json(), ns = JSON.stringify(d); if (ns !== sig) { sig = ns; list = d.tournaments || []; updated = d.updated || ''; render(); } }
   catch (e) { if (!list.length) msg('⚠️', 'خطا در دریافت اطلاعات'); }
 }
+sqEl.addEventListener('input', () => { sq = sqEl.value; sxEl.hidden = !sq; renderBoard(false); });
+sxEl.addEventListener('click', () => { sqEl.value = ''; sq = ''; sxEl.hidden = true; renderBoard(false); sqEl.focus(); });
+sqEl.addEventListener('keydown', e => { if (e.key === 'Enter') sqEl.blur(); else if (e.key === 'Escape') sxEl.click(); });
 load(); setInterval(load, 5000);
 </script></body></html>

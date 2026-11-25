@@ -40,6 +40,10 @@ dialog label{display:block;padding:8px 0}
   .noprint{display:none!important}.top{background:none!important}
   table{font-size:13px}
 }
+.sbox{position:relative;display:flex;align-items:center;flex:1;min-width:200px}
+.sbox input{width:100%;padding-inline-start:36px;padding-inline-end:36px}
+.sbox .si{position:absolute;inset-inline-start:11px;pointer-events:none;opacity:.55}
+.sbox .sx{position:absolute;inset-inline-end:6px;padding:2px 9px;border-radius:99px;background:#e5e7eb;color:var(--tx);line-height:1.5}
 .sw{width:34px;height:34px;border-radius:50%;padding:0;border:2px solid #fff;box-shadow:0 0 0 1px var(--bd);cursor:pointer}
 .sw.on{box-shadow:0 0 0 3px var(--pr)}
 @media print{

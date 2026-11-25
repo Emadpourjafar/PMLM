@@ -17,13 +17,28 @@ function rankCell(r) {
   const m = MEDAL[r];
   return m ? `<span class="medal ${m[2]}">${m[0]} ${m[1]}</span>` : nf(r);
 }
+// ---- جستجو ----
+// یکسان‌سازی متن: ی/ک عربی و فارسی، اعداد فارسی/عربی، نیم‌فاصله، اعراب و حروف بزرگ/کوچک
+const normQ = s => String(s ?? '').toLowerCase()
+  .replace(/[\u064A\u0649]/g, '\u06CC').replace(/\u0643/g, '\u06A9')
+  .replace(/[\u06F0-\u06F9]/g, d => d.charCodeAt(0) - 0x06F0).replace(/[\u0660-\u0669]/g, d => d.charCodeAt(0) - 0x0660)
+  .replace(/[\u064B-\u065F\u0670\u0640]/g, '').replace(/[\u200C\u200D]/g, ' ').replace(/\s+/g, ' ').trim();
+// همه‌ی کلمه‌های جستجو باید در «نام» یا «شهر» باشند (ترتیب مهم نیست)
+function matchRow(r, q) {
+  const w = normQ(q).split(' ').filter(Boolean); if (!w.length) return true;
+  const hay = normQ((r.name || '') + ' ' + (r.city || ''));
+  return w.every(x => hay.includes(x));
+}
 // act: تابعی که HTML ستون عملیات را می‌دهد (برای مدیر)؛ بدون آن جدول فقط‌خواندنی است
-function tableHTML(t, act) {
-  const T = TYPES[t.type], rows = ranked(t.rows);
-  if (!rows.length) return '<p class="empty">هنوز رکوردی ثبت نشده است.</p>';
+// q: عبارت جستجو (اختیاری)؛ رتبه‌ها همیشه از کل لیست محاسبه می‌شوند، نه فقط نتایج
+function tableHTML(t, act, q) {
+  const T = TYPES[t.type], all = ranked(t.rows);
+  if (!all.length) return '<p class="empty">هنوز رکوردی ثبت نشده است.</p>';
+  const rows = normQ(q) ? all.filter(r => matchRow(r, q)) : all;
+  if (!rows.length) return `<p class="empty">رکوردی با «${esc(q)}» پیدا نشد.</p>`;
   return `<table><thead><tr><th>رتبه</th><th>نام و نام‌خانوادگی</th><th>شهر</th><th>${T.col}</th>${act ? '<th class="noprint">عملیات</th>' : ''}</tr></thead><tbody>` +
     rows.map(r => `<tr class="${MEDAL[r.rank] ? 'top ' + MEDAL[r.rank][2] : ''}"><td>${rankCell(r.rank)}</td><td>${esc(r.name)}</td><td>${esc(r.city)}</td><td class="num">${act ? act(r) : nf(r.value)}</td>${act ? `<td class="noprint">${act(r, true)}</td>` : ''}</tr>`).join('') +
-    `</tbody><tfoot><tr><td colspan="3">${T.sum}</td><td class="num">${nf(total(t.rows))}</td>${act ? '<td class="noprint"></td>' : ''}</tr></tfoot></table>`;
+    `</tbody><tfoot><tr><td colspan="3">${T.sum}${rows.length !== all.length ? ' (همه‌ی رکوردها)' : ''}</td><td class="num">${nf(total(t.rows))}</td>${act ? '<td class="noprint"></td>' : ''}</tr></tfoot></table>`;
 }
 
 // ---- تایمر ----
