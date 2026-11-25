@@ -1,88 +1,131 @@
 <!doctype html>
-<html lang="fa" dir="rtl">
-<head>
-  <meta charset="utf-8">
-  <script>try{if(localStorage.getItem("arzem_lang_v1")==="en"){document.documentElement.lang="en";document.documentElement.dir="ltr"}}catch(e){}</script>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#08090c">
-  <meta name="description" data-i18n-content="meta_index" content="محاسبه‌گر کوپن؛ محاسبه مبلغ به تومان و کوپن دریافتی بر اساس نرخ زنده ارز">
-  <title data-i18n="title_index">محاسبه‌گر کوپن</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=4">
-</head>
-<body>
-<main class="page">
-  <header class="topbar">
-    <a class="brand" href="./" aria-label="صفحه اصلی" data-i18n-aria="brand_aria">
-      <div class="mark"><svg class="mark-icon" width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5A1.5 1.5 0 0 1 4.5 7h15A1.5 1.5 0 0 1 21 8.5V10a2 2 0 0 0 0 4v1.5a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 15.5V14a2 2 0 0 0 0-4z"/><path d="M9.5 14.5l5-5"/><circle cx="9.7" cy="10" r=".9" fill="currentColor" stroke="none"/><circle cx="14.3" cy="14" r=".9" fill="currentColor" stroke="none"/></svg></div>
-      <div><b data-i18n="brand_name">محاسبه‌گر کوپن</b><small data-i18n="brand_sub_index">محاسبه سریع و دقیق کوپن ارزی</small></div>
-    </a>
-    <nav class="top-actions">
-      <a class="nav-link active" href="./" data-i18n="nav_calc">محاسبه‌گر</a>
-      <a class="nav-link products-btn" href="products.html" data-i18n="nav_products">لیست قیمت محصولات</a>
-      <button type="button" id="langToggle" class="nav-link lang-btn" data-i18n="lang_toggle" data-i18n-aria="lang_toggle_aria" aria-label="تغییر زبان به انگلیسی">EN</button>
-      <div class="status"><i></i><span id="status" data-i18n="status_loading">در حال دریافت نرخ...</span></div>
-    </nav>
-  </header>
-
-  <section class="hero">
-    <div class="eyebrow">SMART COUPON CALCULATOR</div>
-    <h1 data-i18n-html="hero_h1">کوپن خودت را<br><em>سریع و دقیق</em> محاسبه کن.</h1>
-    <p data-i18n="hero_p">ارز را انتخاب کن، مبلغ را وارد کن و جزئیات کوپن دریافتی را ببین.</p>
-  </section>
-
-  <section class="calculator">
-    <article class="card input-card">
-      <div class="card-kicker" data-i18n="kicker_input">اطلاعات محاسبه</div>
-      <label for="currency" data-i18n="label_currency">انتخاب ارز</label>
-      <div class="select-wrap">
-        <select id="currency" aria-label="انتخاب ارز" data-i18n-aria="label_currency">
-          <option value="" data-i18n="select_currency_first">ابتدا ارز را انتخاب کنید</option>
-        </select><span>⌄</span>
-      </div>
-
-      <label for="amount" data-i18n="label_amount">مبلغ</label>
-      <div class="amount">
-        <input id="amount" inputmode="decimal" autocomplete="off" placeholder="مثلاً ۱٬۰۰۰" data-i18n-placeholder="amount_placeholder">
-        <b id="unit">—</b>
-      </div>
-      <button id="calc" type="button"><span data-i18n="calc_btn">محاسبه کوپن</span> <strong data-i18n="calc_arrow">←</strong></button>
-      <p class="helper" data-i18n="helper">درصد کوپن بر اساس معادل تومانی مبلغ محاسبه می‌شود.</p>
-    </article>
-
-    <article class="card result-card">
-      <div class="result-heading">
-        <div><div class="card-kicker" data-i18n="kicker_result">نتیجه محاسبه</div><h2 data-i18n="result_title">خلاصه کوپن شما</h2></div>
-        <span id="percent" class="percent">—</span>
-      </div>
-      <div class="result-grid">
-        <div class="result-item">
-          <small data-i18n="res_toman">مبلغ به تومان</small>
-          <strong id="tomans">—</strong>
-        </div>
-        <div class="result-item">
-          <small data-i18n="res_coupon_toman">میزان کوپن دریافتی به تومان</small>
-          <strong id="couponToman">—</strong>
-        </div>
-        <div class="result-item result-primary">
-          <small data-i18n="res_coupon_currency">میزان کوپن به ارز انتخاب‌شده</small>
-          <strong id="couponCurrency">—</strong>
-          <span id="couponUnit" data-i18n="select_currency_first">ابتدا ارز را انتخاب کنید</span>
-        </div>
-      </div>
-      <div class="result-foot" id="resultMessage" data-i18n="msg_default">برای مشاهده نتیجه، ارز و مبلغ را وارد کنید.</div>
-    </article>
-  </section>
-
-  <div class="note" id="note"></div>
-  <footer>
-    <span data-i18n="footer_rates_source">نرخ ارز از منبع آنلاین دریافت می‌شود.</span>
-    <span id="updated">—</span>
-  </footer>
-</main>
-<script src="i18n.js?v=4"></script>
-<script src="script.js?v=4"></script>
-</body>
-</html>
+<html lang="fa" dir="rtl"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>تورنومنت</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font-family:Tahoma,Vazirmatn,sans-serif;color:#fff;direction:rtl;background:radial-gradient(circle at 15% 0,#4c1d95 0,transparent 45%),radial-gradient(circle at 95% 25%,#1e40af 0,transparent 42%),#0b1020;background-attachment:fixed}
+.wrap{max-width:720px;margin:auto;padding:20px 14px 40px}
+.hero{text-align:center;padding:14px 0 4px}
+.live{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;background:#ffffff14;padding:4px 12px;border-radius:99px}
+.live i{width:8px;height:8px;border-radius:50%;background:#22c55e;animation:p 1.4s infinite}
+@keyframes p{to{box-shadow:0 0 0 10px #22c55e00}}
+.live i{box-shadow:0 0 0 0 #22c55e99}
+h1{font-size:2rem;margin:12px 0 4px;background:linear-gradient(90deg,#fde68a,#fb923c,#f472b6);-webkit-background-clip:text;background-clip:text;color:transparent}
+.type{color:#c4b5fd;font-size:.9rem}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0}
+.st{background:#ffffff10;border:1px solid #ffffff1a;border-radius:16px;padding:12px 6px;text-align:center}
+.st b{display:block;font-size:1.2rem;margin-top:2px}.st small{color:#a5b4fc;font-size:.72rem}
+.podium{display:flex;justify-content:center;align-items:flex-end;gap:8px;margin:28px 0 20px}
+.pd{flex:1;max-width:210px;text-align:center;min-width:0}
+.pd .nm{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pd .ct{color:#c7d2fe;font-size:.78rem}
+.pd .vl{font-weight:800;font-size:1.1rem;margin:2px 0 6px}
+.pd .bar{border-radius:14px 14px 0 0;display:flex;justify-content:center;padding-top:10px;font-size:2rem;transform-origin:bottom;animation:grow .9s cubic-bezier(.2,.9,.3,1.2) both}
+@keyframes grow{from{transform:scaleY(0)}}
+.r1 .bar{height:150px;background:linear-gradient(#fcd34d,#b45309);box-shadow:0 0 40px #fbbf2466}
+.r2 .bar{height:115px;background:linear-gradient(#e2e8f0,#64748b)}
+.r3 .bar{height:90px;background:linear-gradient(#fdba74,#9a3412)}
+.r1 .vl{color:#fde68a}
+.crown{font-size:1.8rem;animation:fl 2s ease-in-out infinite}@keyframes fl{50%{transform:translateY(-6px)}}
+.it{display:flex;align-items:center;gap:10px;background:#ffffff0d;border:1px solid #ffffff14;border-radius:14px;padding:10px 12px;margin-bottom:8px;animation:up .5s both}
+@keyframes up{from{opacity:0;transform:translateY(12px)}}
+.rk{width:36px;height:36px;border-radius:50%;background:#ffffff18;display:grid;place-items:center;font-weight:800;flex:none}
+.mid{flex:1;min-width:0}.mid .nm{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mid small{color:#a5b4fc}
+.pb{height:6px;background:#ffffff14;border-radius:9px;margin-top:6px;overflow:hidden}
+.pb i{display:block;height:100%;background:linear-gradient(90deg,#818cf8,#f472b6);border-radius:9px;transition:width 1s}
+.vl2{text-align:left;font-weight:800;font-size:1.05rem}.vl2 small{display:block;color:#fca5a5;font-weight:400;font-size:.7rem}
+.mv{font-size:.72rem;margin-inline-start:6px}.up{color:#4ade80}.dn{color:#f87171}
+.msg{text-align:center;padding:60px 10px;color:#c7d2fe}.msg div{font-size:3rem}
+.foot{text-align:center;color:#818cf8;font-size:.75rem;margin-top:18px}
+.timer{margin:14px auto 0;display:inline-block;background:#ffffff12;border:1px solid #ffffff22;border-radius:18px;padding:10px 24px}
+.timer small{display:block;color:#a5b4fc;font-size:.72rem}
+.timer b{font-size:2rem;letter-spacing:2px;direction:ltr;display:inline-block}
+.timer.hot b{color:#f87171;animation:bl 1s infinite}@keyframes bl{50%{opacity:.45}}
+.timer.end{color:#fde68a;font-weight:700;font-size:1.1rem}
+</style></head>
+<body><div class="wrap" id="app"></div>
+<script src="common.js"></script>
+<script>
+const q = new URLSearchParams(location.search).get('t'), app = document.getElementById('app');
+let first = true, sig = '', lastEnded = null, base = null, list = [], updated = '';
+try { base = JSON.parse(localStorage.getItem('rk_' + q)); } catch (e) {}
+const msg = (i, t) => { setConfetti(false); app.innerHTML = `<div class="msg"><div>${i}</div><h2>${t}</h2></div>`; };
+const mv = (id, rank) => { if (!base || base[id] == null || base[id] === rank) return ''; const d = base[id] - rank; return `<span class="mv ${d > 0 ? 'up' : 'dn'}">${d > 0 ? '▲' : '▼'} ${nf(Math.abs(d))}</span>`; };
+const gid = id => document.getElementById(id);
+function tmBox(t) {
+  if (!t.endsAt) return '';
+  if (isEnded(t)) return '<div class="timer end">🏁 مسابقه به پایان رسید</div>';
+  const r = t.endsAt - now();
+  return `<div class="timer ${r < 60000 ? 'hot' : ''}"><small>⏳ زمان باقی‌مانده</small><b id="tm">${fmtT(r)}</b></div>`;
+}
+setInterval(() => {
+  const t = list.find(x => x.id === q); if (!t || !t.endsAt) return;
+  if (isEnded(t) !== lastEnded) return render();
+  const e = gid('tm'); if (!e) return;
+  e.textContent = fmtT(t.endsAt - now()); e.parentNode.classList.toggle('hot', t.endsAt - now() < 60000);
+}, 1000);
+function render() {
+  if (!q) return msg('🔗', 'لینک اختصاصی تورنومنت را از مدیر دریافت کنید');
+  const t = list.find(x => x.id === q);
+  if (!t) return msg('🔍', 'این تورنومنت پیدا نشد یا حذف شده است');
+  const T = TYPES[t.type], rows = ranked(t.rows); lastEnded = isEnded(t);
+  if (!rows.length) return msg('🔥', 'هنوز رکوردی ثبت نشده؛ مسابقه به‌زودی شروع می‌شود!');
+  const top = rows.slice(0, 3), rest = rows.slice(3), max = rows[0].value || 1;
+  const order = top.length === 3 ? [top[1], top[0], top[2]] : top.length === 2 ? [top[1], top[0]] : top;
+  const pod = order.map(r => `<div class="pd r${r.rank}">${r.rank === 1 ? '<div class="crown">👑</div>' : ''}<div class="nm">${esc(r.name)}</div><div class="ct">${esc(r.city)}${mv(r.id, r.rank)}</div><div class="vl" data-n="${r.value}">${nf(r.value)}</div><div class="bar">${MEDAL[r.rank][0]}</div></div>`).join('');
+  const lst = rest.map((r, i) => { const gap = rows[i + 2].value - r.value; return `<div class="it" style="animation-delay:${i * 60}ms"><div class="rk">${nf(r.rank)}</div><div class="mid"><div class="nm">${esc(r.name)}${mv(r.id, r.rank)}</div><small>${esc(r.city)}</small><div class="pb"><i style="width:${Math.max(3, r.value / max * 100)}%"></i></div></div><div class="vl2"><span data-n="${r.value}">${nf(r.value)}</span>${gap > 0 ? `<small>↑ ${nf(gap)} فاصله</small>` : ''}</div></div>`; }).join('');
+  app.innerHTML = `<div class="hero"><span class="live"><i></i>زنده</span><h1>${esc(t.name)}</h1><div class="type">${T.label}</div>${tmBox(t)}</div>
+  <div class="stats"><div class="st"><small>${T.sum}</small><b data-n="${total(t.rows)}">${nf(total(t.rows))}</b></div><div class="st"><small>شرکت‌کنندگان</small><b>${nf(rows.length)}</b></div><div class="st"><small>بالاترین رکورد</small><b data-n="${max}">${nf(max)}</b></div></div>
+  <div class="podium">${pod}</div><div>${lst}</div>
+  <div class="foot">${updated ? 'آخرین به‌روزرسانی: ' + new Date(updated).toLocaleString('fa-IR') + ' · ' : ''}نتایج هر ۵ ثانیه تازه می‌شود</div>`;
+  if (first) { first = false; if (!base) base = {}; countUp(); }
+  setConfetti(lastEnded);
+  try { localStorage.setItem('rk_' + q, JSON.stringify(Object.fromEntries(rows.map(r => [r.id, r.rank])))); } catch (e) {}
+}
+// ---- بمب کاغذ رنگی (تکرارشونده تا وقتی مسابقه تمام‌شده است) ----
+const cv = document.createElement('canvas'), cx = cv.getContext('2d'), CC = ['#fbbf24', '#f472b6', '#818cf8', '#34d399', '#f87171', '#60a5fa', '#fde68a', '#ffffff'];
+cv.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:50';
+document.body.appendChild(cv);
+let parts = [], raf = 0, cTimer = 0;
+const fit = () => { cv.width = innerWidth; cv.height = innerHeight; }; fit(); addEventListener('resize', fit);
+function burst(x, y, ang, spread, n) {
+  for (let i = 0; i < n; i++) {
+    const a = ang + (Math.random() - .5) * spread, v = 7 + Math.random() * 10;
+    parts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, w: 6 + Math.random() * 7, h: 4 + Math.random() * 5, r: Math.random() * 6.3, vr: (Math.random() - .5) * .4, c: CC[i % CC.length], l: 1, round: Math.random() < .25 });
+  }
+  if (!raf) raf = requestAnimationFrame(step);
+}
+function step() {
+  cx.clearRect(0, 0, cv.width, cv.height);
+  parts = parts.filter(p => p.l > 0 && p.y < cv.height + 30);
+  for (const p of parts) {
+    p.vy += .28; p.vx *= .992; p.vy *= .992; p.x += p.vx; p.y += p.vy; p.r += p.vr; p.l -= .004;
+    cx.save(); cx.globalAlpha = Math.min(1, p.l * 2); cx.translate(p.x, p.y); cx.rotate(p.r); cx.fillStyle = p.c;
+    if (p.round) { cx.beginPath(); cx.arc(0, 0, p.w / 2, 0, 6.3); cx.fill(); } else cx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+    cx.restore();
+  }
+  raf = parts.length ? requestAnimationFrame(step) : 0;
+  if (!raf) cx.clearRect(0, 0, cv.width, cv.height);
+}
+function fire() {
+  const e = document.querySelector('.timer.end'), b = e ? e.getBoundingClientRect() : null;
+  burst(b ? b.left + b.width / 2 : innerWidth / 2, b ? b.top + b.height / 2 : innerHeight * .3, -Math.PI / 2, Math.PI * 1.15, 130);
+  burst(0, innerHeight, -Math.PI / 3, .7, 70); burst(innerWidth, innerHeight, -2 * Math.PI / 3, .7, 70);
+}
+function setConfetti(on) {
+  if (on && !cTimer) { if (matchMedia('(prefers-reduced-motion: reduce)').matches) return; setTimeout(fire, 150); cTimer = setInterval(fire, 3200); }
+  else if (!on && cTimer) { clearInterval(cTimer); cTimer = 0; parts = []; }
+}
+function countUp() {
+  document.querySelectorAll('[data-n]').forEach(el => {
+    const to = +el.dataset.n, t0 = performance.now();
+    (function f(t) { const p = Math.min(1, (t - t0) / 900); el.textContent = nf(Math.round(to * (1 - Math.pow(1 - p, 3)))); if (p < 1) requestAnimationFrame(f); })(t0);
+  });
+}
+async function load() {
+  try { const t0 = Date.now(), res = await fetch('data.json?t=' + t0, { cache: 'no-store' }), sk = skewFrom(res, t0, Date.now()); if (sk !== null) SKEW = sk; const d = await res.json(), ns = JSON.stringify(d); if (ns !== sig) { sig = ns; list = d.tournaments || []; updated = d.updated || ''; render(); } }
+  catch (e) { if (!list.length) msg('⚠️', 'خطا در دریافت اطلاعات'); }
+}
+load(); setInterval(load, 5000);
+</script></body></html>
