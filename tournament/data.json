@@ -1,37 +1,6 @@
 {
  "tournaments": [
   {
-   "id": "mwvdpkcbs5fp",
-   "name": "تورنومنت فروش",
-   "type": "sales",
-   "rows": [
-    {
-     "id": "mwvdq1e31feq",
-     "name": "عماد پورجعفر",
-     "city": "رشت",
-     "value": 5000000
-    },
-    {
-     "id": "mwvdqjxhpxh2",
-     "name": "زهرا اسکندری",
-     "city": "انزلی",
-     "value": 4000000
-    },
-    {
-     "id": "mwvdqwqvzj80",
-     "name": "نیلوفر عظیمی",
-     "city": "رشت",
-     "value": 17500000
-    },
-    {
-     "id": "mwvdrkf726rj",
-     "name": "سارا سلمانی‌پور",
-     "city": "انزلی",
-     "value": 22150000
-    }
-   ]
-  },
-  {
    "id": "mwvdvjwtrcgd",
    "name": "سلام",
    "type": "present",
@@ -57,5 +26,5 @@
    ]
   }
  ],
- "updated": "2026-11-25T00:27:36.069Z"
+ "updated": "2026-11-25T00:48:53.507Z"
 }
