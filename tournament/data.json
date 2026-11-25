@@ -38,39 +38,7 @@
    ],
    "endsAt": 1795569101556,
    "theme": "ruby"
-  },
-  {
-   "id": "at5keyrwxo",
-   "name": "تستی جدید",
-   "type": "present",
-   "rows": [
-    {
-     "id": "usiamy2vkv",
-     "name": "عماد پورجعفر",
-     "city": "رشت",
-     "value": 2
-    },
-    {
-     "id": "0qbcd6dkes",
-     "name": "علی محمدی",
-     "city": "تهران",
-     "value": 3
-    },
-    {
-     "id": "2qitxuxugu",
-     "name": "پویا حسن‌زاده",
-     "city": "رشت",
-     "value": 6
-    },
-    {
-     "id": "y34rfe5h80",
-     "name": "حبیب",
-     "city": "اصفهان",
-     "value": 1
-    }
-   ],
-   "endsAt": 1795570220889.5
   }
  ],
- "updated": "2026-11-25T05:01:34.466Z"
+ "updated": "2026-11-25T05:46:00.664Z"
 }
