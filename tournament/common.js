@@ -25,3 +25,26 @@ function tableHTML(t, act) {
     rows.map(r => `<tr class="${MEDAL[r.rank] ? 'top ' + MEDAL[r.rank][2] : ''}"><td>${rankCell(r.rank)}</td><td>${esc(r.name)}</td><td>${esc(r.city)}</td><td class="num">${act ? act(r) : nf(r.value)}</td>${act ? `<td class="noprint">${act(r, true)}</td>` : ''}</tr>`).join('') +
     `</tbody><tfoot><tr><td colspan="3">${T.sum}</td><td class="num">${nf(total(t.rows))}</td>${act ? '<td class="noprint"></td>' : ''}</tr></tfoot></table>`;
 }
+
+// ---- تایمر ----
+let SKEW = 0;
+const now = () => Date.now() + SKEW;
+const faD = s => String(s).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+function fmtT(ms) {
+  const s = Math.max(0, Math.ceil(ms / 1000)), p = n => String(n).padStart(2, '0');
+  return faD(Math.floor(s / 3600) + ':' + p(Math.floor(s % 3600 / 60)) + ':' + p(s % 60));
+  
+}
+const isEnded = t => !!t.endsAt && now() >= t.endsAt;
+
+// همگام‌سازی ساعت با سرور (هدر Date همان سایت)، تا مدیر و کلاینت دقیقاً یک زمان ببینند
+function skewFrom(res, t0, t1) {
+  const d = res.headers.get('Date'); if (!d) return null;
+  return new Date(d).getTime() + 500 + (+res.headers.get('Age') || 0) * 1000 + (t1 - t0) / 2 - t1;
+}
+async function syncClock(url) {
+  try {
+    const t0 = Date.now(), r = await fetch(url + '?t=' + t0, { method: 'HEAD', cache: 'no-store' }), s = skewFrom(r, t0, Date.now());
+    if (s !== null) SKEW = s;
+  } catch (e) {}
+}
