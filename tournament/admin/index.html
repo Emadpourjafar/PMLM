@@ -25,6 +25,11 @@
         <select id="tt"><option value="sales">روز فروش</option><option value="present">روز پرزنت</option></select>
         <button onclick="createT()">ایجاد</button>
       </div>
+      <div class="row" style="margin-top:8px"><span style="color:var(--mu)">⏱ مدت تورنومنت:</span>
+        <input id="ch" type="number" min="0" placeholder="ساعت" style="flex:none;min-width:0;width:80px">
+        <input id="cm" type="number" min="0" placeholder="دقیقه" style="flex:none;min-width:0;width:80px">
+        <input id="cs" type="number" min="0" placeholder="ثانیه" style="flex:none;min-width:0;width:80px">
+        <small style="color:var(--mu)">(خالی = بدون محدودیت)</small></div>
       <div class="err" id="terr"></div>
     </div>
     <div class="tabs" id="tabs"></div>
@@ -97,18 +102,37 @@ function logout() { localStorage.removeItem('tcfg'); location.reload(); }
 })();
 
 // ---- تورنومنت ----
-const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const uid = () => Array.from(crypto.getRandomValues(new Uint8Array(10)), b => (b % 36).toString(36)).join('');
+const linkOf = id => new URL('../', location.href).href + '?t=' + id;
+let newId = null, endedShown = null;
+const durOf = p => ((+$(p + 'h').value || 0) * 3600 + (+$(p + 'm').value || 0) * 60 + (+$(p + 's').value || 0)) * 1000;
+const tmText = t => !t.endsAt ? 'بدون محدودیت زمان' : isEnded(t) ? '🏁 تمام شد' : fmtT(t.endsAt - now());
+function setTimer() {
+  const d = durOf('e'); if (d <= 0) { $('rerr').textContent = 'زمان باقی‌مانده را وارد کنید'; return; }
+  curT().endsAt = now() + d; commit();
+}
+syncClock('../data.json'); setInterval(() => syncClock('../data.json'), 120000);
+setInterval(() => {
+  const t = list.length && curT(); if (!t || !$('tm')) return;
+  if (isEnded(t) !== endedShown) render(); else $('tm').textContent = tmText(t);
+}, 1000);
+function copyLink(btn) {
+  const i = $('lk'), done = () => { btn.textContent = 'کپی شد ✓'; setTimeout(() => btn.textContent = 'کپی لینک', 1800); };
+  if (navigator.clipboard) navigator.clipboard.writeText(i.value).then(done, () => { i.select(); document.execCommand('copy'); done(); });
+  else { i.select(); document.execCommand('copy'); done(); }
+}
 function createT() {
   const name = $('tn').value.trim(); $('terr').textContent = '';
   if (!name) { $('terr').textContent = 'نام تورنومنت را وارد کنید'; return; }
-  pending = { id: uid(), name, type: $('tt').value, rows: [] };
+  pending = { id: uid(), name, type: $('tt').value, rows: [], dur: durOf('c') };
   if (list.length < MAX) return saveNew();
   $('opts').innerHTML = list.map((t, i) => `<label><input type="radio" name="rep" value="${t.id}" ${i ? '' : 'checked'}> ${esc(t.name)} <span class="badge">${TYPES[t.type].label}</span></label>`).join('');
   $('dlg').showModal();
 }
 function saveNew(replaceId) {
   if (replaceId) list = list.filter(t => t.id !== replaceId);
-  list.push(pending); cur = pending.id; pending = null; $('tn').value = ''; commit();
+  pending.endsAt = pending.dur ? now() + pending.dur : null; delete pending.dur;
+  list.push(pending); cur = pending.id; newId = cur; ['ch', 'cm', 'cs'].forEach(i => $(i).value = ''); pending = null; $('tn').value = ''; commit();
 }
 function confirmReplace() { const id = document.querySelector('input[name=rep]:checked').value; $('dlg').close(); saveNew(id); }
 function delT(id) { if (confirm('این تورنومنت و همه‌ی رکوردهایش حذف شود؟')) { list = list.filter(t => t.id !== id); commit(); } }
@@ -116,6 +140,7 @@ function delT(id) { if (confirm('این تورنومنت و همه‌ی رکور
 // ---- رکوردها ----
 const curT = () => list.find(t => t.id === cur);
 function addRow() {
+  if (isEnded(curT()) && !editId) return;
   const t = curT(), name = $('rn').value.trim(), city = $('rc').value.trim(), value = Math.max(0, parseInt($('rv').value) || 0);
   if (!name) { $('rerr').textContent = 'نام را وارد کنید'; return; }
   if (editId) Object.assign(t.rows.find(x => x.id === editId), { name, city, value });
@@ -139,15 +164,20 @@ function act(r, buttons) {
 function render() {
   if (!list.length) { $('tabs').innerHTML = ''; $('view').innerHTML = '<p class="empty">هنوز تورنومنتی نساخته‌اید.</p>'; $('print').innerHTML = ''; return; }
   if (!list.find(t => t.id === cur)) cur = list[0].id;
-  $('tabs').innerHTML = list.map(t => `<button class="tab ${t.id === cur ? 'on' : ''}" onclick="cur='${t.id}';editId=null;render()">${esc(t.name)}</button>`).join('') + `<span style="color:var(--mu);align-self:center">${nf(list.length)} از ${nf(MAX)}</span>`;
-  const t = curT(), T = TYPES[t.type];
+  $('tabs').innerHTML = list.map(t => `<button class="tab ${t.id === cur ? 'on' : ''}" onclick="cur='${t.id}';editId=null;newId=null;render()">${esc(t.name)}</button>`).join('') + `<span style="color:var(--mu);align-self:center">${nf(list.length)} از ${nf(MAX)}</span>`;
+  const t = curT(), T = TYPES[t.type], ended = isEnded(t); endedShown = ended;
   $('view').innerHTML = `<div class="card">
     <div class="row" style="justify-content:space-between"><h2 style="margin:0">${esc(t.name)}<span class="badge">${T.label}</span></h2>
       <span><button class="sm" onclick="window.print()">📄 خروجی PDF</button> <button class="sm del" onclick="delT('${t.id}')">حذف تورنومنت</button></span></div>
-    <div class="stat">${T.sum}:<b>${nf(total(t.rows))}</b></div>
-    <div class="row" style="margin:10px 0"><input id="rn" placeholder="نام و نام‌خانوادگی"><input id="rc" placeholder="شهر">
+    ${newId === t.id ? '<p style="color:#15803d;font-weight:700">✅ تورنومنت ساخته شد. لینک اختصاصی‌اش را کپی کنید و برای شرکت‌کنندگان بفرستید.</p>' : ''}
+    <div class="row" style="margin:8px 0"><span style="color:var(--mu)">🔗 لینک اختصاصی:</span><input id="lk" readonly dir="ltr" value="${linkOf(t.id)}" onclick="this.select()"><button class="sm" onclick="copyLink(this)">کپی لینک</button></div>
+    <div class="stat">${T.sum}:<b>${nf(total(t.rows))}</b></div> <div class="stat">⏱ <b id="tm">${tmText(t)}</b></div>
+    <div class="row" style="margin:8px 0"><span style="color:var(--mu)">ویرایش زمان باقی‌مانده:</span>
+      <input id="eh" type="number" min="0" placeholder="ساعت" style="flex:none;min-width:0;width:80px"><input id="em" type="number" min="0" placeholder="دقیقه" style="flex:none;min-width:0;width:80px"><input id="es" type="number" min="0" placeholder="ثانیه" style="flex:none;min-width:0;width:80px">
+      <button class="sm" onclick="setTimer()">اعمال</button></div>
+    ${ended && !editId ? '<p class="err">⏰ زمان تورنومنت تمام شده؛ افزودن ردیف جدید غیرفعال است.</p>' : `<div class="row" style="margin:10px 0"><input id="rn" placeholder="نام و نام‌خانوادگی"><input id="rc" placeholder="شهر">
       <input id="rv" type="number" min="0" placeholder="${T.col}" onkeydown="if(event.key==='Enter')addRow()">
-      <button onclick="addRow()">${editId ? 'ذخیره' : 'افزودن'}</button>${editId ? '<button class="sec" onclick="cancelEdit()">انصراف</button>' : ''}</div>
+      <button onclick="addRow()">${editId ? 'ذخیره' : 'افزودن'}</button>${editId ? '<button class="sec" onclick="cancelEdit()">انصراف</button>' : ''}</div>`}
     <div class="err" id="rerr"></div>
     <div class="scroll">${tableHTML(t, act)}</div></div>`;
   $('print').innerHTML = `<h1>${esc(t.name)} — ${T.label}</h1><p>تاریخ: ${new Date().toLocaleDateString('fa-IR')}</p>` + tableHTML(t);
