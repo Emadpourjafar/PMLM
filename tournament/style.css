@@ -34,6 +34,7 @@ dialog{border:0;border-radius:14px;padding:20px;max-width:420px;width:92%;direct
 dialog::backdrop{background:#0006}
 dialog label{display:block;padding:8px 0}
 .print-only{display:none}
+.cr{max-width:900px;margin:8px auto 24px;padding:0 16px;text-align:center;color:var(--mu);font-size:.62rem;opacity:.8}
 @media print{
   body{background:#fff}.screen{display:none!important}.print-only{display:block}
   .noprint{display:none!important}.top{background:none!important}

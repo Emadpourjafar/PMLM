@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="fa" dir="rtl"><head>
+<meta charset="utf-8"><meta name="author" content="Emad Pourjafar"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ساخت تنظیمات ورود مدیر</title><link rel="stylesheet" href="../style.css"></head>
+<body><div class="wrap">
+<h1>🔐 ساخت تنظیمات ورود مدیر</h1>
+<div class="card">
+  <p style="color:var(--mu)">این صفحه همه‌چیز را فقط داخل مرورگر خودتان انجام می‌دهد و چیزی به جایی نمی‌فرستد (به‌جز یک بررسی توکن با گیت‌هاب). توکن با رمز هر مدیر رمزگذاری می‌شود و بعد از ورود دیگر لازم نیست توکن یا ریپو را وارد کنند.</p>
+  <div class="row" style="flex-direction:column;align-items:stretch">
+    <input id="o" placeholder="نام کاربری گیت‌هاب (owner)" dir="ltr">
+    <input id="r" placeholder="نام ریپو" dir="ltr">
+    <input id="f" placeholder="مسیر فایل" dir="ltr" value="tournament/data.json">
+    <input id="tk" type="password" placeholder="توکن گیت‌هاب (github_pat_...)" dir="ltr">
+  </div>
+  <h3>مدیرها</h3>
+  <div id="admins"></div>
+  <button class="sec sm" onclick="addRow()">+ مدیر دیگر</button>
+  <div style="margin-top:14px"><button onclick="build()">ساخت تنظیمات</button></div>
+  <div class="err" id="err"></div>
+</div>
+<div class="card" id="outc" style="display:none">
+  <b>خروجی</b>
+  <p style="color:var(--mu);font-size:.85rem">کل این متن را به‌جای <b>تمام محتوای</b> فایل <code dir="ltr">tournament/admin/config.js</code> در گیت‌هاب بگذارید و commit کنید. بعد این فایل (<code dir="ltr">setup.html</code>) را از ریپو حذف کنید.</p>
+  <textarea id="out" readonly dir="ltr" style="width:100%;height:220px;font-size:.75rem"></textarea>
+  <div style="margin-top:8px"><button onclick="copyOut(this)">کپی متن</button></div>
+</div>
+</div>
+<div class="cr"><span dir="ltr">Copyright: Emad Pourjafar</span></div>
+<script>
+const $ = id => document.getElementById(id), ITER = 600000;
+const b64 = u => btoa(String.fromCharCode(...u));
+function addRow() {
+  const d = document.createElement('div'); d.className = 'row'; d.style.marginBottom = '8px';
+  d.innerHTML = '<input class="un" placeholder="نام کاربری (انگلیسی)" dir="ltr"><input class="pw" type="password" placeholder="رمز (حداقل ۱۰ کاراکتر)" dir="ltr">';
+  $('admins').appendChild(d);
+}
+addRow();
+const h = location.hostname, seg = location.pathname.split('/')[1];
+if (h.endsWith('.github.io')) { $('o').value = h.split('.')[0]; $('r').value = seg === 'tournament' ? h : seg; }
+async function enc(payload, pass) {
+  const salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12));
+  const km = await crypto.subtle.importKey('raw', new TextEncoder().encode(pass), 'PBKDF2', false, ['deriveKey']);
+  const key = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: ITER, hash: 'SHA-256' }, km, { name: 'AES-GCM', length: 256 }, false, ['encrypt']);
+  const ct = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, new TextEncoder().encode(JSON.stringify(payload))));
+  return { salt: b64(salt), iv: b64(iv), iter: ITER, data: b64(ct) };
+}
+async function build() {
+  const e = $('err'); e.textContent = ''; $('outc').style.display = 'none';
+  if (!window.crypto || !crypto.subtle) { e.textContent = 'این مرورگر یا آدرس از رمزنگاری پشتیبانی نمی‌کند (باید https باشد).'; return; }
+  const cfg = { token: $('tk').value.trim(), owner: $('o').value.trim(), repo: $('r').value.trim(), path: $('f').value.trim() || 'tournament/data.json' };
+  if (!cfg.token || !cfg.owner || !cfg.repo) { e.textContent = 'توکن، owner و نام ریپو را کامل کنید'; return; }
+  const rows = [...document.querySelectorAll('#admins .row')].map(r => [r.querySelector('.un').value.trim().toLowerCase(), r.querySelector('.pw').value]).filter(x => x[0] || x[1]);
+  if (!rows.length) { e.textContent = 'حداقل یک مدیر وارد کنید'; return; }
+  for (const [u, p] of rows) {
+    if (!/^[a-z0-9_.-]{3,}$/.test(u)) { e.textContent = 'نام کاربری فقط حروف کوچک انگلیسی، عدد و _ . - و حداقل ۳ کاراکتر'; return; }
+    if (p.length < 10) { e.textContent = 'رمز هر مدیر باید حداقل ۱۰ کاراکتر باشد'; return; }
+  }
+  if (new Set(rows.map(x => x[0])).size !== rows.length) { e.textContent = 'نام کاربری تکراری است'; return; }
+  e.textContent = 'در حال بررسی توکن…';
+  try {
+    const r = await fetch(`https://api.github.com/repos/${cfg.owner}/${cfg.repo}`, { headers: { Authorization: 'Bearer ' + cfg.token } });
+    if (!r.ok) throw 0; if (!(await r.json()).permissions?.push) throw 1;
+  } catch (x) { e.textContent = x === 1 ? 'این توکن اجازه‌ی نوشتن ندارد' : 'توکن یا نام ریپو درست نیست'; return; }
+  e.textContent = 'در حال رمزگذاری (چند ثانیه)…';
+  const users = {}; for (const [u, p] of rows) users[u] = await enc(cfg, p);
+  $('out').value = 'window.ADMIN_CFG = { users: ' + JSON.stringify(users, null, 1) + ' };\n';
+  $('outc').style.display = 'block'; e.textContent = '';
+}
+function copyOut(b) { $('out').select(); document.execCommand('copy'); b.textContent = 'کپی شد ✓'; }
+</script></body></html>
