@@ -64,7 +64,7 @@
 <script src="config.js"></script><script src="../common.js"></script>
 <script>
 const $ = id => document.getElementById(id), MAX = 3;
-let list = [], cur = null, editId = null, pending = null, S = null, sha = null;
+let list = [], cur = null, editId = null, pending = null, S = null, sha = null, adminQ = '';
 let saving = false, again = false, timer = null;
 
 // ---- ارتباط با گیت‌هاب ----
@@ -202,8 +202,10 @@ function addRow() {
   if (isEnded(curT()) && !editId) return;
   const t = curT(), name = $('rn').value.trim(), city = $('rc').value.trim(), value = Math.max(0, parseInt($('rv').value) || 0);
   if (!name) { $('rerr').textContent = 'نام را وارد کنید'; return; }
-  if (editId) Object.assign(t.rows.find(x => x.id === editId), { name, city, value });
-  else t.rows.push({ id: uid(), name, city, value });
+  let saved;
+  if (editId) { saved = t.rows.find(x => x.id === editId); Object.assign(saved, { name, city, value }); }
+  else { saved = { id: uid(), name, city, value }; t.rows.push(saved); }
+  if (!matchRow(saved, adminQ)) adminQ = ''; // ردیف ذخیره‌شده با فیلتر فعلی نمی‌خواند؛ فیلتر برداشته می‌شود تا ردیف دیده شود
   editId = null; commit();
 }
 function editRow(id) { const r = curT().rows.find(x => x.id === id); editId = id; render(); $('rn').value = r.name; $('rc').value = r.city; $('rv').value = r.value; $('rn').focus(); }
@@ -211,6 +213,14 @@ function cancelEdit() { editId = null; render(); }
 function delRow(id) { if (confirm('این رکورد حذف شود؟')) { const t = curT(); t.rows = t.rows.filter(r => r.id !== id); commit(); } }
 function setVal(id, v) { curT().rows.find(r => r.id === id).value = Math.max(0, parseInt(v) || 0); commit(); }
 function step(id, d) { setVal(id, curT().rows.find(x => x.id === id).value + d); }
+
+// ---- جستجو ----
+const sInfo = t => normQ(adminQ) ? `${nf(ranked(t.rows).filter(r => matchRow(r, adminQ)).length)} نتیجه از ${nf(t.rows.length)} رکورد` : '';
+function onSearch(v) {
+  adminQ = v; const t = curT(); if (!t) return;
+  $('tbl').innerHTML = tableHTML(t, act, adminQ); $('sc').textContent = sInfo(t); $('sx').hidden = !v;
+}
+function clearSearch() { $('sq').value = ''; onSearch(''); $('sq').focus(); }
 
 function act(r, buttons) {
   const t = curT();
@@ -223,7 +233,7 @@ function act(r, buttons) {
 function render() {
   if (!list.length) { $('tabs').innerHTML = ''; $('view').innerHTML = '<p class="empty">هنوز تورنومنتی نساخته‌اید.</p>'; $('print').innerHTML = ''; return; }
   if (!list.find(t => t.id === cur)) cur = list[0].id;
-  $('tabs').innerHTML = list.map(t => `<button class="tab ${t.id === cur ? 'on' : ''}" onclick="cur='${t.id}';editId=null;newId=null;render()">${esc(t.name)}</button>`).join('') + `<span style="color:var(--mu);align-self:center">${nf(list.length)} از ${nf(MAX)}</span>`;
+  $('tabs').innerHTML = list.map(t => `<button class="tab ${t.id === cur ? 'on' : ''}" onclick="cur='${t.id}';editId=null;newId=null;adminQ='';render()">${esc(t.name)}</button>`).join('') + `<span style="color:var(--mu);align-self:center">${nf(list.length)} از ${nf(MAX)}</span>`;
   const t = curT(), T = TYPES[t.type], ended = isEnded(t), canPrint = !t.endsAt || ended; endedShown = ended; if (ended && $('dlgT').open) $('dlgT').close();
   $('view').innerHTML = `<div class="card">
     <div class="row" style="justify-content:space-between"><h2 style="margin:0">${esc(t.name)}<span class="badge">${T.label}</span></h2>
@@ -236,7 +246,8 @@ function render() {
       <input id="rv" type="number" min="0" placeholder="${T.col}" onkeydown="if(event.key==='Enter')addRow()">
       <button onclick="addRow()">${editId ? 'ذخیره' : 'افزودن'}</button>${editId ? '<button class="sec" onclick="cancelEdit()">انصراف</button>' : ''}</div>`}
     <div class="err" id="rerr"></div>
-    <div class="scroll">${tableHTML(t, act)}</div></div>`;
+    ${t.rows.length ? `<div class="row" style="margin:10px 0"><div class="sbox"><span class="si">🔍</span><input id="sq" type="text" inputmode="search" enterkeyhint="search" autocomplete="off" placeholder="جستجوی نام یا شهر…" value="${esc(adminQ)}" oninput="onSearch(this.value)"><button class="sx" id="sx" type="button" title="پاک کردن جستجو" onclick="clearSearch()" ${adminQ ? '' : 'hidden'}>✕</button></div><small id="sc" style="color:var(--mu)">${sInfo(t)}</small></div>` : ''}
+    <div class="scroll" id="tbl">${tableHTML(t, act, adminQ)}</div></div>`;
   $('print').innerHTML = canPrint ? pdfHTML(t) : '<p>خروجی چاپ فقط پس از پایان مسابقه در دسترس است.</p>';
 }
 
