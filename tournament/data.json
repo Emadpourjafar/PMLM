@@ -1,4 +1,12 @@
 {
- "tournaments": [],
- "updated": "2026-11-25T01:03:48.758Z"
+ "tournaments": [
+  {
+   "id": "hbbcyxz1t9",
+   "name": "تستی",
+   "type": "sales",
+   "rows": [],
+   "endsAt": 1795568776496
+  }
+ ],
+ "updated": "2026-11-25T01:04:07.386Z"
 }
