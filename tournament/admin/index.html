@@ -1,17 +1,24 @@
 <!doctype html>
 <html lang="fa" dir="rtl"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8"><meta name="author" content="Emad Pourjafar"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>مدیریت تورنومنت</title><link rel="stylesheet" href="../style.css"></head>
 <body><div class="wrap">
 
 <div id="login" class="card screen" style="max-width:380px;margin:40px auto;display:none">
   <h1>ورود مدیر</h1>
-  <div class="row" style="flex-direction:column;align-items:stretch">
+  <div id="pw" class="row" style="flex-direction:column;align-items:stretch;display:none">
+    <input id="lu" placeholder="نام کاربری" autocomplete="username" dir="ltr">
+    <input id="lp" type="password" placeholder="رمز عبور" autocomplete="current-password" dir="ltr" onkeydown="if(event.key==='Enter')loginPw()">
+    <button onclick="loginPw()">ورود</button>
+    <a href="#" onclick="toggleLegacy(event)" style="font-size:.8rem;color:var(--mu);text-align:center">ورود با توکن گیت‌هاب (پیشرفته)</a>
+  </div>
+  <div id="legacy" class="row" style="flex-direction:column;align-items:stretch">
     <input id="tk" type="password" placeholder="توکن گیت‌هاب" dir="ltr">
     <input id="o" placeholder="نام کاربری گیت‌هاب (owner)" dir="ltr">
     <input id="r" placeholder="نام ریپو" dir="ltr">
     <input id="f" placeholder="مسیر فایل" dir="ltr" value="tournament/data.json">
     <button onclick="login()">ورود</button>
+    <a id="back" href="#" onclick="toggleLegacy(event)" style="font-size:.8rem;color:var(--mu);text-align:center;display:none">بازگشت به ورود با رمز</a>
   </div>
   <div class="err" id="lerr"></div>
 </div>
@@ -53,7 +60,8 @@
 </dialog>
 </div>
 
-<script src="../common.js"></script>
+<div class="cr screen"><span dir="ltr">Copyright: Emad Pourjafar</span></div>
+<script src="config.js"></script><script src="../common.js"></script>
 <script>
 const $ = id => document.getElementById(id), MAX = 3;
 let list = [], cur = null, editId = null, pending = null, S = null, sha = null;
@@ -88,8 +96,29 @@ async function persist() {
 function commit() { render(); queueSave(); }
 
 // ---- ورود ----
+// ---- ورود با نام کاربری و رمز (توکن رمزشده در config.js) ----
+const CFG = window.ADMIN_CFG || { users: {} };
+const hasUsers = () => Object.keys(CFG.users || {}).length > 0;
+function showLoginForm(legacy) {
+  const pw = hasUsers() && !legacy;
+  $('pw').style.display = pw ? 'flex' : 'none'; $('legacy').style.display = pw ? 'none' : 'flex'; $('back').style.display = hasUsers() ? 'block' : 'none';
+}
+function toggleLegacy(e) { e.preventDefault(); showLoginForm($('legacy').style.display === 'none'); }
+const b64d = x => Uint8Array.from(atob(x), c => c.charCodeAt(0));
+async function decryptCfg(rec, pass) {
+  const km = await crypto.subtle.importKey('raw', new TextEncoder().encode(pass), 'PBKDF2', false, ['deriveKey']);
+  const key = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt: b64d(rec.salt), iterations: rec.iter || 600000, hash: 'SHA-256' }, km, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+  return JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64d(rec.iv) }, key, b64d(rec.data))));
+}
+async function loginPw() {
+  const u = $('lu').value.trim().toLowerCase(), p = $('lp').value, rec = (CFG.users || {})[u], bad = 'نام کاربری یا رمز عبور اشتباه است';
+  if (!rec || !p) { $('lerr').textContent = bad; return; }
+  $('lerr').textContent = 'در حال بررسی…';
+  let cfg; try { cfg = await decryptCfg(rec, p); } catch (e) { $('lerr').textContent = bad; return; }
+  await login(cfg, 'session');
+}
 function enter() { $('login').style.display = 'none'; $('panel').style.display = 'block'; render(); }
-async function login(cfg) {
+async function login(cfg, store = cfg ? null : 'local') {
   S = cfg || { token: $('tk').value.trim(), owner: $('o').value.trim(), repo: $('r').value.trim(), path: $('f').value.trim() || 'tournament/data.json' };
   $('lerr').textContent = '';
   try {
@@ -97,10 +126,10 @@ async function login(cfg) {
     if (!rp.ok) throw new Error('ریپو پیدا نشد یا توکن نامعتبر است');
     if (!(await rp.json()).permissions?.push) throw new Error('این توکن اجازه‌ی نوشتن ندارد');
     list = (await getFile()).tournaments || [];
-    localStorage.setItem('tcfg', JSON.stringify(S)); enter();
-  } catch (e) { $('login').style.display = 'block'; $('lerr').textContent = e.message; }
+    if (store) (store === 'session' ? sessionStorage : localStorage).setItem('tcfg', JSON.stringify(S)); enter();
+  } catch (e) { $('login').style.display = 'block'; showLoginForm(); $('lerr').textContent = e.message; }
 }
-function logout() { localStorage.removeItem('tcfg'); location.reload(); }
+function logout() { localStorage.removeItem('tcfg'); sessionStorage.removeItem('tcfg'); location.reload(); }
 
 
 // ---- تورنومنت ----
@@ -132,7 +161,7 @@ function pdfHTML(t) {
   <div class="sec">جدول کامل نتایج</div>
   <table><thead><tr><th>رتبه</th><th>نام و نام‌خانوادگی</th><th>شهر</th><th>${T.col}</th></tr></thead><tbody>${body || '<tr><td colspan="4">رکوردی ثبت نشده است</td></tr>'}</tbody></table>
   <div class="tot"><span>${T.sum}</span><span>${nf(total(t.rows))}</span></div>
-  <div class="pf">تهیه‌شده از سامانه‌ی تورنومنت · ${new Date().toLocaleDateString('fa-IR')}</div></div>`;
+  <div class="pf">تهیه‌شده از سامانه‌ی تورنومنت · ${new Date().toLocaleDateString('fa-IR')}<br><span dir="ltr" style="font-size:9px">Copyright: Emad Pourjafar</span></div></div>`;
 }
 function openTimer() {
   if (isEnded(curT())) return; ['eh', 'em', 'es'].forEach(i => $(i).value = ''); $('terr2').textContent = ''; $('dlgT').showModal(); }
@@ -215,7 +244,7 @@ function render() {
 (function init() {
   const h = location.hostname, seg = location.pathname.split('/')[1];
   if (h.endsWith('.github.io')) { $('o').value = h.split('.')[0]; $('r').value = seg === 'tournament' ? h : seg; }
-  let c = null; try { c = JSON.parse(localStorage.getItem('tcfg')); } catch (e) {}
-  if (c && c.token) login(c); else $('login').style.display = 'block';
+  let c = null; try { c = JSON.parse(sessionStorage.getItem('tcfg') || localStorage.getItem('tcfg')); } catch (e) {}
+  if (c && c.token) login(c); else { $('login').style.display = 'block'; showLoginForm(); }
 })();
 </script></body></html>
