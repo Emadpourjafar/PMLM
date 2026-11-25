@@ -44,6 +44,13 @@
   <div id="opts"></div>
   <div class="row" style="margin-top:12px"><button onclick="confirmReplace()">جایگزین کن</button><button class="sec" onclick="dlg.close()">انصراف</button></div>
 </dialog>
+<dialog id="dlgT">
+  <b>⏱ ویرایش زمان باقی‌مانده</b>
+  <p style="color:var(--mu);font-size:.85rem">زمان جدید از همین لحظه شروع به شمارش می‌کند.</p>
+  <div class="row"><input id="eh" type="number" min="0" placeholder="ساعت" style="flex:none;min-width:0;width:80px"><input id="em" type="number" min="0" placeholder="دقیقه" style="flex:none;min-width:0;width:80px"><input id="es" type="number" min="0" placeholder="ثانیه" style="flex:none;min-width:0;width:80px"></div>
+  <div class="err" id="terr2"></div>
+  <div class="row" style="margin-top:12px"><button onclick="setTimer()">اعمال</button><button class="sec" onclick="dlgT.close()">انصراف</button></div>
+</dialog>
 </div>
 
 <script src="../common.js"></script>
@@ -102,9 +109,21 @@ function linkOf(id) { return new URL('../', location.href).href + '?t=' + id; }
 let newId = null, endedShown = null;
 const durOf = p => ((+$(p + 'h').value || 0) * 3600 + (+$(p + 'm').value || 0) * 60 + (+$(p + 's').value || 0)) * 1000;
 const tmText = t => !t.endsAt ? 'بدون محدودیت زمان' : isEnded(t) ? '🏁 تمام شد' : fmtT(t.endsAt - now());
+function pdfHTML(t) {
+  const T = TYPES[t.type], rows = ranked(t.rows), w = new Date(t.endsAt || now());
+  const when = w.toLocaleDateString('fa-IR') + ' ' + w.toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' });
+  const cls = r => ({ 1: 'gold', 2: 'silver', 3: 'bronze' }[r] || '');
+  const body = rows.length ? rows.map(r => `<tr class="${cls(r.rank)}"><td><span class="bd">${nf(r.rank)}</span>${MEDAL[r.rank] ? `<span class="md">${MEDAL[r.rank][1]}</span>` : ''}</td><td>${esc(r.name)}</td><td>${esc(r.city)}</td><td class="num">${nf(r.value)}</td></tr>`).join('') : '<tr><td colspan="4">رکوردی ثبت نشده است</td></tr>';
+  return `<div class="pdf"><div class="ph"><div><h1>${esc(t.name)}</h1><div class="pt">${T.label} · ${t.endsAt ? 'پایان' : 'تاریخ'}: ${when}</div></div><div class="cup">نتایج نهایی</div></div>
+  <div class="ps"><div><small>${T.sum}</small><b>${nf(total(t.rows))}</b></div><div><small>تعداد شرکت‌کنندگان</small><b>${nf(rows.length)}</b></div><div><small>نفر اول</small><b>${rows[0] ? esc(rows[0].name) : '—'}</b></div></div>
+  <table><thead><tr><th>رتبه</th><th>نام و نام‌خانوادگی</th><th>شهر</th><th>${T.col}</th></tr></thead><tbody>${body}</tbody></table>
+  <div class="tot"><span>${T.sum}</span><span>${nf(total(t.rows))}</span></div>
+  <div class="pf">تهیه‌شده از سامانه‌ی تورنومنت · ${new Date().toLocaleDateString('fa-IR')}</div></div>`;
+}
+function openTimer() { ['eh', 'em', 'es'].forEach(i => $(i).value = ''); $('terr2').textContent = ''; $('dlgT').showModal(); }
 function setTimer() {
-  const d = durOf('e'); if (d <= 0) { $('rerr').textContent = 'زمان باقی‌مانده را وارد کنید'; return; }
-  curT().endsAt = now() + d; commit();
+  const d = durOf('e'); if (d <= 0) { $('terr2').textContent = 'زمان باقی‌مانده را وارد کنید'; return; }
+  $('dlgT').close(); curT().endsAt = now() + d; commit();
 }
 syncClock('../data.json'); setInterval(() => syncClock('../data.json'), 120000);
 setInterval(() => {
@@ -160,22 +179,19 @@ function render() {
   if (!list.length) { $('tabs').innerHTML = ''; $('view').innerHTML = '<p class="empty">هنوز تورنومنتی نساخته‌اید.</p>'; $('print').innerHTML = ''; return; }
   if (!list.find(t => t.id === cur)) cur = list[0].id;
   $('tabs').innerHTML = list.map(t => `<button class="tab ${t.id === cur ? 'on' : ''}" onclick="cur='${t.id}';editId=null;newId=null;render()">${esc(t.name)}</button>`).join('') + `<span style="color:var(--mu);align-self:center">${nf(list.length)} از ${nf(MAX)}</span>`;
-  const t = curT(), T = TYPES[t.type], ended = isEnded(t); endedShown = ended;
+  const t = curT(), T = TYPES[t.type], ended = isEnded(t), canPrint = !t.endsAt || ended; endedShown = ended;
   $('view').innerHTML = `<div class="card">
     <div class="row" style="justify-content:space-between"><h2 style="margin:0">${esc(t.name)}<span class="badge">${T.label}</span></h2>
-      <span><button class="sm" onclick="window.print()">📄 خروجی PDF</button> <button class="sm del" onclick="delT('${t.id}')">حذف تورنومنت</button></span></div>
+      <span>${canPrint ? '<button class="sm" onclick="window.print()">📄 خروجی PDF</button>' : '<button class="sm" disabled style="opacity:.5">📄 PDF بعد از پایان مسابقه</button>'} <button class="sm del" onclick="delT('${t.id}')">حذف تورنومنت</button></span></div>
     ${newId === t.id ? '<p style="color:#15803d;font-weight:700">✅ تورنومنت ساخته شد. لینک اختصاصی‌اش را کپی کنید و برای شرکت‌کنندگان بفرستید.</p>' : ''}
     <div class="row" style="margin:8px 0"><span style="color:var(--mu)">🔗 لینک اختصاصی:</span><input id="lk" readonly dir="ltr" value="${linkOf(t.id)}" onclick="this.select()"><button class="sm" onclick="copyLink(this)">کپی لینک</button></div>
-    <div class="stat">${T.sum}:<b>${nf(total(t.rows))}</b></div> <div class="stat">⏱ <b id="tm">${tmText(t)}</b></div>
-    <div class="row" style="margin:8px 0"><span style="color:var(--mu)">ویرایش زمان باقی‌مانده:</span>
-      <input id="eh" type="number" min="0" placeholder="ساعت" style="flex:none;min-width:0;width:80px"><input id="em" type="number" min="0" placeholder="دقیقه" style="flex:none;min-width:0;width:80px"><input id="es" type="number" min="0" placeholder="ثانیه" style="flex:none;min-width:0;width:80px">
-      <button class="sm" onclick="setTimer()">اعمال</button></div>
+    <div class="stat">${T.sum}:<b>${nf(total(t.rows))}</b></div> <div class="stat">⏱ <b id="tm" style="direction:ltr;unicode-bidi:isolate;display:inline-block">${tmText(t)}</b> <button class="sm sec" title="ویرایش زمان" onclick="openTimer()">✏️</button></div>
     ${ended && !editId ? '<p class="err">⏰ زمان تورنومنت تمام شده؛ افزودن ردیف جدید غیرفعال است.</p>' : `<div class="row" style="margin:10px 0"><input id="rn" placeholder="نام و نام‌خانوادگی"><input id="rc" placeholder="شهر">
       <input id="rv" type="number" min="0" placeholder="${T.col}" onkeydown="if(event.key==='Enter')addRow()">
       <button onclick="addRow()">${editId ? 'ذخیره' : 'افزودن'}</button>${editId ? '<button class="sec" onclick="cancelEdit()">انصراف</button>' : ''}</div>`}
     <div class="err" id="rerr"></div>
     <div class="scroll">${tableHTML(t, act)}</div></div>`;
-  $('print').innerHTML = `<h1>${esc(t.name)} — ${T.label}</h1><p>تاریخ: ${new Date().toLocaleDateString('fa-IR')}</p>` + tableHTML(t);
+  $('print').innerHTML = canPrint ? pdfHTML(t) : '<p>خروجی چاپ فقط پس از پایان مسابقه در دسترس است.</p>';
 }
 
 // ---- شروع (بعد از تعریف همه‌ی توابع) ----
