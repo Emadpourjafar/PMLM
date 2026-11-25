@@ -1,6 +1,3 @@
-firebase.initializeApp(window.FB_CONFIG);
-const db = firebase.firestore();
-const COL = db.collection('tournaments');
 const TYPES = {
   sales:   { label: 'روز فروش',  col: 'میزان فروش',          sum: 'مجموع فروش' },
   present: { label: 'روز پرزنت', col: 'تعداد پرزنت ست‌شده', sum: 'مجموع پرزنت ست‌شده' }

@@ -6,14 +6,14 @@
 <h1>🏆 تورنومنت</h1>
 <div class="tabs" id="tabs"></div>
 <div id="view"></div>
+<p id="upd" style="color:var(--mu);font-size:.8rem"></p>
 </div>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js"></script><script src="common.js"></script>
+<script src="common.js"></script>
 <script>
-let list = [], cur = null;
+let list = [], cur = null, updated = '';
 function render() {
   const tabs = document.getElementById('tabs'), view = document.getElementById('view');
+  document.getElementById('upd').textContent = updated ? 'آخرین به‌روزرسانی: ' + new Date(updated).toLocaleString('fa-IR') : '';
   if (!list.length) { tabs.innerHTML = ''; view.innerHTML = '<p class="empty">تورنومنتی وجود ندارد.</p>'; return; }
   if (!list.find(t => t.id === cur)) cur = list[0].id;
   tabs.innerHTML = list.map(t => `<button class="tab ${t.id === cur ? 'on' : ''}" onclick="cur='${t.id}';render()">${esc(t.name)}</button>`).join('');
@@ -22,6 +22,11 @@ function render() {
     <div class="stat">${T.sum}:<b>${nf(total(t.rows))}</b></div>
     <div class="scroll">${tableHTML(t)}</div></div>`;
 }
-COL.onSnapshot(s => { list = s.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0)); render(); },
-  e => document.getElementById('view').innerHTML = '<p class="err">خطا در دریافت اطلاعات</p>');
+async function load() {
+  try {
+    const d = await (await fetch('data.json?t=' + Date.now(), { cache: 'no-store' })).json();
+    list = d.tournaments || []; updated = d.updated || ''; render();
+  } catch (e) { if (!list.length) document.getElementById('view').innerHTML = '<p class="err">خطا در دریافت اطلاعات</p>'; }
+}
+load(); setInterval(load, 30000);
 </script></body></html>
