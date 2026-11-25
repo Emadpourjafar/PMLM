@@ -6,6 +6,7 @@
   const PT_W = 595.28, PT_H = 841.89;     // A4 به پوینت
   const SCALE = 2;                        // کیفیت (≈ 190dpi)
   const MARGIN = 30;
+  const COPYRIGHT = "Copyright: Emad Pourjafar";
   const FONT = '"Vazirmatn", Tahoma, "Segoe UI", Arial, sans-serif';
   const COLS = [["name", 286], ["rep", 142], ["retail", 142], ["suggested", 164]];
   const LINE_H = 17, ROW_PAD = 8, HEAD_PAD = 10, TOP = 104, BOTTOM = PAGE_H - 52;
@@ -82,7 +83,8 @@
     ctx.fillStyle = grad;
     ctx.fillRect(MARGIN, 86, PAGE_W - 2 * MARGIN, 2.5);
 
-    drawText(ctx, o.pageText(pageNo, total), 500, 10.5, "#8a8698", PAGE_W / 2, PAGE_H - 28, "center");
+    drawText(ctx, o.pageText(pageNo, total), 500, 10.5, "#8a8698", PAGE_W / 2, PAGE_H - 34, "center");
+    drawText(ctx, COPYRIGHT, 500, 9, "#a29eb0", PAGE_W / 2, PAGE_H - 16, "center");
   }
 
   function drawCells(ctx, o, cells, top, height, opts) {
@@ -214,7 +216,7 @@
     });
 
     begin(infoId);
-    push(`${infoId} 0 obj\n<< /Title <${utf16Hex(title)}> /Producer (Coupon Calculator) /CreationDate (${created}) >>\nendobj\n`);
+    push(`${infoId} 0 obj\n<< /Title <${utf16Hex(title)}> /Author (Emad Pourjafar) /Producer (Coupon Calculator) /CreationDate (${created}) >>\nendobj\n`);
 
     const xrefAt = offset;
     let xref = `xref\n0 ${total + 1}\n0000000000 65535 f \n`;

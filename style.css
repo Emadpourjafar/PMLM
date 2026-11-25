@@ -56,6 +56,7 @@ button{font-family:Vazirmatn;cursor:pointer}
 .note{min-height:24px;color:#777a84;text-align:center;font-size:9px;margin:15px 0 0}
 footer{display:flex;justify-content:space-between;gap:12px;color:#5e616b;font-size:8px;margin-top:9px}
 footer a{color:#c9a966;text-decoration:none}
+.cr{text-align:center;color:#5e616b;font-size:9px;margin-top:14px;opacity:.85;letter-spacing:.2px}
 .products-hero{text-align:center;margin:52px auto 27px}
 .products-hero h1{font-size:clamp(28px,5vw,42px)}
 .products-toolbar{display:flex;align-items:end;justify-content:space-between;gap:16px;padding:17px 20px}
