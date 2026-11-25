@@ -4,11 +4,13 @@
 <title>مدیریت تورنومنت</title><link rel="stylesheet" href="../style.css"></head>
 <body><div class="wrap">
 
-<div id="login" class="card screen" style="max-width:360px;margin:60px auto;display:none">
+<div id="login" class="card screen" style="max-width:380px;margin:40px auto;display:none">
   <h1>ورود مدیر</h1>
   <div class="row" style="flex-direction:column;align-items:stretch">
-    <input id="u" placeholder="نام کاربری" autocomplete="username" dir="ltr">
-    <input id="p" type="password" placeholder="رمز عبور" autocomplete="current-password" dir="ltr" onkeydown="if(event.key==='Enter')login()">
+    <input id="tk" type="password" placeholder="توکن گیت‌هاب" dir="ltr">
+    <input id="o" placeholder="نام کاربری گیت‌هاب (owner)" dir="ltr">
+    <input id="r" placeholder="نام ریپو" dir="ltr">
+    <input id="f" placeholder="مسیر فایل" dir="ltr" value="tournament/data.json">
     <button onclick="login()">ورود</button>
   </div>
   <div class="err" id="lerr"></div>
@@ -16,7 +18,7 @@
 
 <div id="panel" style="display:none">
   <div class="screen">
-    <div class="row" style="justify-content:space-between"><h1>⚙️ مدیریت تورنومنت</h1><button class="sec" onclick="firebase.auth().signOut()">خروج</button></div>
+    <div class="row" style="justify-content:space-between"><h1>⚙️ مدیریت تورنومنت</h1><span><span id="st" style="color:var(--mu)"></span> <button class="sec" onclick="logout()">خروج</button></span></div>
     <div class="card"><b>تورنومنت جدید</b>
       <div class="row" style="margin-top:8px">
         <input id="tn" placeholder="نام تورنومنت">
@@ -39,68 +41,92 @@
 </dialog>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="../firebase-config.js"></script><script src="../common.js"></script>
+<script src="../common.js"></script>
 <script>
-const $ = id => document.getElementById(id), MAX = 3, DOMAIN = '@tournament.local';
-let list = [], cur = null, editId = null, pending = null, unsub = null;
+const $ = id => document.getElementById(id), MAX = 3;
+let list = [], cur = null, editId = null, pending = null, S = null, sha = null;
+let saving = false, again = false, timer = null;
+
+// ---- ارتباط با گیت‌هاب ----
+const API = () => `https://api.github.com/repos/${S.owner}/${S.repo}/contents/${S.path}`;
+const HD = () => ({ Authorization: 'Bearer ' + S.token, Accept: 'application/vnd.github+json' });
+async function getFile() {
+  const r = await fetch(API() + '?t=' + Date.now(), { headers: HD(), cache: 'no-store' });
+  if (!r.ok) throw new Error(r.status === 401 ? 'توکن نامعتبر است' : r.status === 404 ? 'فایل یا ریپو پیدا نشد (مسیر را بررسی کنید)' : 'خطا ' + r.status);
+  const j = await r.json(); sha = j.sha;
+  const bin = atob(j.content.replace(/\n/g, ''));
+  return JSON.parse(new TextDecoder().decode(Uint8Array.from(bin, c => c.charCodeAt(0))));
+}
+async function putFile() {
+  const body = JSON.stringify({ tournaments: list, updated: new Date().toISOString() }, null, 1);
+  let bin = ''; new TextEncoder().encode(body).forEach(b => bin += String.fromCharCode(b));
+  const r = await fetch(API(), { method: 'PUT', headers: { ...HD(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message: 'update tournaments', content: btoa(bin), sha }) });
+  if (!r.ok) throw new Error(r.status === 409 || r.status === 422 ? 'تداخل ذخیره؛ صفحه را رفرش کنید' : r.status === 403 || r.status === 404 ? 'دسترسی نوشتن ندارد' : 'خطا ' + r.status);
+  sha = (await r.json()).content.sha;
+}
+function queueSave() { $('st').textContent = 'در انتظار ذخیره…'; clearTimeout(timer); timer = setTimeout(persist, 800); }
+async function persist() {
+  if (saving) { again = true; return; }
+  saving = true; $('st').textContent = 'در حال ذخیره…';
+  try { do { again = false; await putFile(); } while (again); $('st').textContent = 'ذخیره شد ✓'; }
+  catch (e) { $('st').textContent = '⚠️ ' + e.message; }
+  saving = false;
+}
+const commit = () => { render(); queueSave(); };
 
 // ---- ورود ----
-async function login() {
+function enter() { $('login').style.display = 'none'; $('panel').style.display = 'block'; render(); }
+async function login(cfg) {
+  S = cfg || { token: $('tk').value.trim(), owner: $('o').value.trim(), repo: $('r').value.trim(), path: $('f').value.trim() || 'tournament/data.json' };
   $('lerr').textContent = '';
-  try { await firebase.auth().signInWithEmailAndPassword($('u').value.trim().toLowerCase() + DOMAIN, $('p').value); }
-  catch (e) { $('lerr').textContent = 'نام کاربری یا رمز عبور اشتباه است'; }
+  try {
+    const rp = await fetch(`https://api.github.com/repos/${S.owner}/${S.repo}`, { headers: HD() });
+    if (!rp.ok) throw new Error('ریپو پیدا نشد یا توکن نامعتبر است');
+    if (!(await rp.json()).permissions?.push) throw new Error('این توکن اجازه‌ی نوشتن ندارد');
+    list = (await getFile()).tournaments || [];
+    localStorage.setItem('tcfg', JSON.stringify(S)); enter();
+  } catch (e) { $('login').style.display = 'block'; $('lerr').textContent = e.message; }
 }
-firebase.auth().onAuthStateChanged(user => {
-  $('login').style.display = user ? 'none' : 'block';
-  $('panel').style.display = user ? 'block' : 'none';
-  if (unsub) { unsub(); unsub = null; }
-  if (user) unsub = COL.onSnapshot(s => {
-    list = s.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0)); render();
-  });
-});
+function logout() { localStorage.removeItem('tcfg'); location.reload(); }
+(function init() {
+  const h = location.hostname, seg = location.pathname.split('/')[1];
+  if (h.endsWith('.github.io')) { $('o').value = h.split('.')[0]; $('r').value = seg === 'tournament' ? h : seg; }
+  let c = null; try { c = JSON.parse(localStorage.getItem('tcfg')); } catch (e) {}
+  if (c && c.token) login(c); else $('login').style.display = 'block';
+})();
 
 // ---- تورنومنت ----
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 function createT() {
   const name = $('tn').value.trim(); $('terr').textContent = '';
   if (!name) { $('terr').textContent = 'نام تورنومنت را وارد کنید'; return; }
-  pending = { name, type: $('tt').value, rows: [], createdAt: Date.now() };
+  pending = { id: uid(), name, type: $('tt').value, rows: [] };
   if (list.length < MAX) return saveNew();
   $('opts').innerHTML = list.map((t, i) => `<label><input type="radio" name="rep" value="${t.id}" ${i ? '' : 'checked'}> ${esc(t.name)} <span class="badge">${TYPES[t.type].label}</span></label>`).join('');
   $('dlg').showModal();
 }
-async function saveNew(replaceId) {
-  const batch = db.batch();
-  if (replaceId) batch.delete(COL.doc(replaceId));
-  const ref = COL.doc(); batch.set(ref, pending); await batch.commit();
-  cur = ref.id; pending = null; $('tn').value = '';
+function saveNew(replaceId) {
+  if (replaceId) list = list.filter(t => t.id !== replaceId);
+  list.push(pending); cur = pending.id; pending = null; $('tn').value = ''; commit();
 }
-async function confirmReplace() {
-  const id = document.querySelector('input[name=rep]:checked').value;
-  $('dlg').close(); await saveNew(id);
-}
-async function delT(id) {
-  if (confirm('این تورنومنت و همه‌ی رکوردهایش حذف شود؟')) await COL.doc(id).delete();
-}
+function confirmReplace() { const id = document.querySelector('input[name=rep]:checked').value; $('dlg').close(); saveNew(id); }
+function delT(id) { if (confirm('این تورنومنت و همه‌ی رکوردهایش حذف شود؟')) { list = list.filter(t => t.id !== id); commit(); } }
 
 // ---- رکوردها ----
-const saveRows = (t, rows) => COL.doc(t.id).update({ rows });
 const curT = () => list.find(t => t.id === cur);
-async function addRow() {
-  const t = curT(), name = $('rn').value.trim(), city = $('rc').value.trim(), value = parseInt($('rv').value) || 0;
+function addRow() {
+  const t = curT(), name = $('rn').value.trim(), city = $('rc').value.trim(), value = Math.max(0, parseInt($('rv').value) || 0);
   if (!name) { $('rerr').textContent = 'نام را وارد کنید'; return; }
-  const rows = [...t.rows];
-  if (editId) { const r = rows.find(x => x.id === editId); Object.assign(r, { name, city, value }); }
-  else rows.push({ id: Date.now() + '' + Math.random().toString(36).slice(2, 6), name, city, value });
-  editId = null; await saveRows(t, rows);
+  if (editId) Object.assign(t.rows.find(x => x.id === editId), { name, city, value });
+  else t.rows.push({ id: uid(), name, city, value });
+  editId = null; commit();
 }
 function editRow(id) { const r = curT().rows.find(x => x.id === id); editId = id; render(); $('rn').value = r.name; $('rc').value = r.city; $('rv').value = r.value; $('rn').focus(); }
 function cancelEdit() { editId = null; render(); }
-async function delRow(id) { if (confirm('این رکورد حذف شود؟')) { const t = curT(); await saveRows(t, t.rows.filter(r => r.id !== id)); } }
-async function setVal(id, v) { const t = curT(); await saveRows(t, t.rows.map(r => r.id === id ? { ...r, value: Math.max(0, parseInt(v) || 0) } : r)); }
-const step = (id, d) => { const r = curT().rows.find(x => x.id === id); setVal(id, r.value + d); };
+function delRow(id) { if (confirm('این رکورد حذف شود؟')) { const t = curT(); t.rows = t.rows.filter(r => r.id !== id); commit(); } }
+function setVal(id, v) { curT().rows.find(r => r.id === id).value = Math.max(0, parseInt(v) || 0); commit(); }
+const step = (id, d) => setVal(id, curT().rows.find(x => x.id === id).value + d);
 
 function act(r, buttons) {
   const t = curT();
