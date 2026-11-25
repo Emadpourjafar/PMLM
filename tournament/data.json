@@ -35,8 +35,15 @@
    "id": "mwvdvjwtrcgd",
    "name": "سلام",
    "type": "present",
-   "rows": []
+   "rows": [
+    {
+     "id": "mwvdvs9qmqvg",
+     "name": "عماد پورجعفر",
+     "city": "رشت",
+     "value": 1
+    }
+   ]
   }
  ],
- "updated": "2026-11-25T00:26:44.276Z"
+ "updated": "2026-11-25T00:26:55.107Z"
 }
