@@ -48,3 +48,17 @@ async function syncClock(url) {
     if (s !== null) SKEW = s;
   } catch (e) {}
 }
+
+// ---- تم‌های صفحه‌ی کلاینت (فقط نورهای پس‌زمینه عوض می‌شود) ----
+const THEMES = [
+  { id: 'violet',   name: 'بنفش و آبی',   g1: '#4c1d95', g2: '#1e40af', bg: '#0b1020' },
+  { id: 'ocean',    name: 'اقیانوس',      g1: '#0e7490', g2: '#1e3a8a', bg: '#06131d' },
+  { id: 'emerald',  name: 'زمرد',         g1: '#047857', g2: '#0f766e', bg: '#07140f' },
+  { id: 'sunset',   name: 'غروب',         g1: '#7c2d12', g2: '#9d174d', bg: '#170b0f' },
+  { id: 'ruby',     name: 'یاقوت',        g1: '#7f1d1d', g2: '#450a0a', bg: '#120808' },
+  { id: 'rose',     name: 'صورتی شب',     g1: '#831843', g2: '#6d28d9', bg: '#150a17' },
+  { id: 'amber',    name: 'کهربایی',      g1: '#92400e', g2: '#854d0e', bg: '#130e08' },
+  { id: 'aurora',   name: 'شفق قطبی',     g1: '#0f766e', g2: '#4338ca', bg: '#07121a' },
+  { id: 'midnight', name: 'نیمه‌شب',      g1: '#1d4ed8', g2: '#312e81', bg: '#070c1d' },
+  { id: 'graphite', name: 'خاکستری نقره‌ای', g1: '#475569', g2: '#334155', bg: '#0c1017' }
+];

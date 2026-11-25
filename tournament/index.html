@@ -4,7 +4,8 @@
 <title>تورنومنت</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;min-height:100vh;font-family:Tahoma,Vazirmatn,sans-serif;color:#fff;direction:rtl;background:radial-gradient(circle at 15% 0,#4c1d95 0,transparent 45%),radial-gradient(circle at 95% 25%,#1e40af 0,transparent 42%),#0b1020;background-attachment:fixed}
+:root{--g1:#4c1d95;--g2:#1e40af;--bg:#0b1020}
+body{margin:0;min-height:100vh;font-family:Tahoma,Vazirmatn,sans-serif;color:#fff;direction:rtl;background:radial-gradient(circle at 15% 0,var(--g1) 0,transparent 45%),radial-gradient(circle at 95% 25%,var(--g2) 0,transparent 42%),var(--bg);background-attachment:fixed}
 .wrap{max-width:720px;margin:auto;padding:20px 14px 40px}
 .hero{text-align:center;padding:14px 0 4px}
 .live{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;background:#ffffff14;padding:4px 12px;border-radius:99px}
@@ -48,9 +49,9 @@ h1{font-size:2rem;margin:12px 0 4px;background:linear-gradient(90deg,#fde68a,#fb
 <script src="common.js"></script>
 <script>
 const q = new URLSearchParams(location.search).get('t'), app = document.getElementById('app');
-let first = true, lastEnded = null, base = null, list = [], updated = '';
+let first = true, sig = '', lastEnded = null, base = null, list = [], updated = '';
 try { base = JSON.parse(localStorage.getItem('rk_' + q)); } catch (e) {}
-const msg = (i, t) => app.innerHTML = `<div class="msg"><div>${i}</div><h2>${t}</h2></div>`;
+const msg = (i, t) => { setConfetti(false); app.innerHTML = `<div class="msg"><div>${i}</div><h2>${t}</h2></div>`; };
 const mv = (id, rank) => { if (!base || base[id] == null || base[id] === rank) return ''; const d = base[id] - rank; return `<span class="mv ${d > 0 ? 'up' : 'dn'}">${d > 0 ? '▲' : '▼'} ${nf(Math.abs(d))}</span>`; };
 const gid = id => document.getElementById(id);
 function tmBox(t) {
@@ -65,22 +66,65 @@ setInterval(() => {
   const e = gid('tm'); if (!e) return;
   e.textContent = fmtT(t.endsAt - now()); e.parentNode.classList.toggle('hot', t.endsAt - now() < 60000);
 }, 1000);
+function applyTheme(t) {
+  const th = THEMES.find(x => x.id === t.theme) || THEMES[0], st = document.documentElement.style;
+  st.setProperty('--g1', th.g1); st.setProperty('--g2', th.g2); st.setProperty('--bg', th.bg);
+}
+function endPill(t) {
+  const e = new Date(t.endsAt);
+  return `<span class="live">🏁 پایان مسابقه: ساعت ${e.toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' })} · ${e.toLocaleDateString('fa-IR')}</span>`;
+}
 function render() {
   if (!q) return msg('🔗', 'لینک اختصاصی تورنومنت را از مدیر دریافت کنید');
   const t = list.find(x => x.id === q);
   if (!t) return msg('🔍', 'این تورنومنت پیدا نشد یا حذف شده است');
-  const T = TYPES[t.type], rows = ranked(t.rows); lastEnded = isEnded(t);
+  const T = TYPES[t.type], rows = ranked(t.rows); lastEnded = isEnded(t); applyTheme(t);
   if (!rows.length) return msg('🔥', 'هنوز رکوردی ثبت نشده؛ مسابقه به‌زودی شروع می‌شود!');
   const top = rows.slice(0, 3), rest = rows.slice(3), max = rows[0].value || 1;
   const order = top.length === 3 ? [top[1], top[0], top[2]] : top.length === 2 ? [top[1], top[0]] : top;
   const pod = order.map(r => `<div class="pd r${r.rank}">${r.rank === 1 ? '<div class="crown">👑</div>' : ''}<div class="nm">${esc(r.name)}</div><div class="ct">${esc(r.city)}${mv(r.id, r.rank)}</div><div class="vl" data-n="${r.value}">${nf(r.value)}</div><div class="bar">${MEDAL[r.rank][0]}</div></div>`).join('');
   const lst = rest.map((r, i) => { const gap = rows[i + 2].value - r.value; return `<div class="it" style="animation-delay:${i * 60}ms"><div class="rk">${nf(r.rank)}</div><div class="mid"><div class="nm">${esc(r.name)}${mv(r.id, r.rank)}</div><small>${esc(r.city)}</small><div class="pb"><i style="width:${Math.max(3, r.value / max * 100)}%"></i></div></div><div class="vl2"><span data-n="${r.value}">${nf(r.value)}</span>${gap > 0 ? `<small>↑ ${nf(gap)} فاصله</small>` : ''}</div></div>`; }).join('');
-  app.innerHTML = `<div class="hero"><span class="live"><i></i>زنده</span><h1>${esc(t.name)}</h1><div class="type">${T.label}</div>${tmBox(t)}</div>
+  app.innerHTML = `<div class="hero">${lastEnded ? endPill(t) : '<span class="live"><i></i>زنده</span>'}<h1>${esc(t.name)}</h1><div class="type">${T.label}</div>${tmBox(t)}</div>
   <div class="stats"><div class="st"><small>${T.sum}</small><b data-n="${total(t.rows)}">${nf(total(t.rows))}</b></div><div class="st"><small>شرکت‌کنندگان</small><b>${nf(rows.length)}</b></div><div class="st"><small>بالاترین رکورد</small><b data-n="${max}">${nf(max)}</b></div></div>
   <div class="podium">${pod}</div><div>${lst}</div>
-  <div class="foot">${updated ? 'آخرین به‌روزرسانی: ' + new Date(updated).toLocaleString('fa-IR') + ' · ' : ''}نتایج هر ۳۰ ثانیه تازه می‌شود</div>`;
+  <div class="foot">${updated ? 'آخرین به‌روزرسانی: ' + new Date(updated).toLocaleString('fa-IR') + ' · ' : ''}نتایج هر ۵ ثانیه تازه می‌شود</div>`;
   if (first) { first = false; if (!base) base = {}; countUp(); }
+  setConfetti(lastEnded);
   try { localStorage.setItem('rk_' + q, JSON.stringify(Object.fromEntries(rows.map(r => [r.id, r.rank])))); } catch (e) {}
+}
+// ---- بمب کاغذ رنگی (تکرارشونده تا وقتی مسابقه تمام‌شده است) ----
+const cv = document.createElement('canvas'), cx = cv.getContext('2d'), CC = ['#fbbf24', '#f472b6', '#818cf8', '#34d399', '#f87171', '#60a5fa', '#fde68a', '#ffffff'];
+cv.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:50';
+document.body.appendChild(cv);
+let parts = [], raf = 0, cTimer = 0;
+const fit = () => { cv.width = innerWidth; cv.height = innerHeight; }; fit(); addEventListener('resize', fit);
+function burst(x, y, ang, spread, n) {
+  for (let i = 0; i < n; i++) {
+    const a = ang + (Math.random() - .5) * spread, v = 7 + Math.random() * 10;
+    parts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, w: 6 + Math.random() * 7, h: 4 + Math.random() * 5, r: Math.random() * 6.3, vr: (Math.random() - .5) * .4, c: CC[i % CC.length], l: 1, round: Math.random() < .25 });
+  }
+  if (!raf) raf = requestAnimationFrame(step);
+}
+function step() {
+  cx.clearRect(0, 0, cv.width, cv.height);
+  parts = parts.filter(p => p.l > 0 && p.y < cv.height + 30);
+  for (const p of parts) {
+    p.vy += .28; p.vx *= .992; p.vy *= .992; p.x += p.vx; p.y += p.vy; p.r += p.vr; p.l -= .004;
+    cx.save(); cx.globalAlpha = Math.min(1, p.l * 2); cx.translate(p.x, p.y); cx.rotate(p.r); cx.fillStyle = p.c;
+    if (p.round) { cx.beginPath(); cx.arc(0, 0, p.w / 2, 0, 6.3); cx.fill(); } else cx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+    cx.restore();
+  }
+  raf = parts.length ? requestAnimationFrame(step) : 0;
+  if (!raf) cx.clearRect(0, 0, cv.width, cv.height);
+}
+function fire() {
+  const e = document.querySelector('.timer.end'), b = e ? e.getBoundingClientRect() : null;
+  burst(b ? b.left + b.width / 2 : innerWidth / 2, b ? b.top + b.height / 2 : innerHeight * .3, -Math.PI / 2, Math.PI * 1.15, 130);
+  burst(0, innerHeight, -Math.PI / 3, .7, 70); burst(innerWidth, innerHeight, -2 * Math.PI / 3, .7, 70);
+}
+function setConfetti(on) {
+  if (on && !cTimer) { setTimeout(fire, 150); cTimer = setInterval(fire, 3200); }
+  else if (!on && cTimer) { clearInterval(cTimer); cTimer = 0; parts = []; }
 }
 function countUp() {
   document.querySelectorAll('[data-n]').forEach(el => {
@@ -89,8 +133,8 @@ function countUp() {
   });
 }
 async function load() {
-  try { const t0 = Date.now(), res = await fetch('data.json?t=' + t0, { cache: 'no-store' }), sk = skewFrom(res, t0, Date.now()); if (sk !== null) SKEW = sk; const d = await res.json(); list = d.tournaments || []; updated = d.updated || ''; render(); }
+  try { const t0 = Date.now(), res = await fetch('data.json?t=' + t0, { cache: 'no-store' }), sk = skewFrom(res, t0, Date.now()); if (sk !== null) SKEW = sk; const d = await res.json(), ns = JSON.stringify(d); if (ns !== sig) { sig = ns; list = d.tournaments || []; updated = d.updated || ''; render(); } }
   catch (e) { if (!list.length) msg('⚠️', 'خطا در دریافت اطلاعات'); }
 }
-load(); setInterval(load, 30000);
+load(); setInterval(load, 5000);
 </script></body></html>
