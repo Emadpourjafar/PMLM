@@ -119,73 +119,7 @@
    ],
    "endsAt": 1795882685175,
    "theme": "rose"
-  },
-  {
-   "id": "nmb3xbf64y",
-   "name": "آزمایشی",
-   "type": "present",
-   "rows": [
-    {
-     "id": "35g4memfpq",
-     "name": "الف",
-     "city": "تهران",
-     "value": 3
-    },
-    {
-     "id": "9zwiylo2e0",
-     "name": "ب",
-     "city": "رشت",
-     "value": 7
-    },
-    {
-     "id": "z1izz0zcrl",
-     "name": "پ",
-     "city": "رشت",
-     "value": 3
-    },
-    {
-     "id": "rjy4un5hnx",
-     "name": "علی",
-     "city": "انزلی",
-     "value": 6
-    },
-    {
-     "id": "3ajjy2wv4h",
-     "name": "حامد",
-     "city": "انزلی",
-     "value": 1
-    },
-    {
-     "id": "v45haflido",
-     "name": "احمد",
-     "city": "قزوین",
-     "value": 5
-    }
-   ],
-   "prize": {
-    "per": 2,
-    "ch": 1,
-    "count": 2
-   },
-   "endsAt": 1795882992522.5,
-   "theme": "midnight",
-   "winners": [
-    {
-     "id": "v45haflido",
-     "name": "احمد",
-     "city": "قزوین",
-     "value": 5,
-     "ch": 2
-    },
-    {
-     "id": "9zwiylo2e0",
-     "name": "ب",
-     "city": "رشت",
-     "value": 7,
-     "ch": 3
-    }
-   ]
   }
  ],
- "updated": "2026-11-28T16:23:31.286Z"
+ "updated": "2026-11-28T16:26:03.561Z"
 }
