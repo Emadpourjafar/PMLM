@@ -1,57 +1,6 @@
 {
  "tournaments": [
   {
-   "id": "vme8mnm61y",
-   "name": "آزمایشی",
-   "type": "sales",
-   "rows": [
-    {
-     "id": "nc7u1yix8e",
-     "name": "عماد",
-     "city": "رشت",
-     "value": 10500000
-    },
-    {
-     "id": "nhsps1eg7l",
-     "name": "نیلوفر",
-     "city": "رشت",
-     "value": 26000000
-    },
-    {
-     "id": "gt492n6jee",
-     "name": "زهرا",
-     "city": "انزلی",
-     "value": 17500000
-    },
-    {
-     "id": "5sarjc11y0",
-     "name": "حسن",
-     "city": "تهران",
-     "value": 14000000
-    },
-    {
-     "id": "4ck2nvmsaa",
-     "name": "علی",
-     "city": "بجنورد",
-     "value": 13450000
-    },
-    {
-     "id": "kg7mc2bbfb",
-     "name": "سارا",
-     "city": "اصفهان",
-     "value": 21460000
-    },
-    {
-     "id": "lrszfste76",
-     "name": "حامد",
-     "city": "آبادان",
-     "value": 16470000
-    }
-   ],
-   "endsAt": 1795860905973.5,
-   "theme": "graphite"
-  },
-  {
    "id": "dpxbm9isky",
    "name": "آزمایشی قرعه‌کشی",
    "type": "sales",
@@ -168,5 +117,5 @@
    ]
   }
  ],
- "updated": "2026-11-28T09:29:32.594Z"
+ "updated": "2026-11-28T13:14:30.493Z"
 }
