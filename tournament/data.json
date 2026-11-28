@@ -121,8 +121,9 @@
    "name": "تست",
    "type": "present",
    "rows": [],
-   "endsAt": null
+   "endsAt": null,
+   "theme": "rose"
   }
  ],
- "updated": "2026-11-28T13:14:47.902Z"
+ "updated": "2026-11-28T13:14:51.539Z"
 }
