@@ -29,14 +29,25 @@
     <div class="card"><b>تورنومنت جدید</b>
       <div class="row" style="margin-top:8px">
         <input id="tn" placeholder="نام تورنومنت">
-        <select id="tt"><option value="sales">روز فروش</option><option value="present">روز پرزنت</option></select>
+        <select id="tt" onchange="pzUnit()"><option value="sales">روز فروش</option><option value="present">روز پرزنت</option></select>
         <button onclick="createT()">ایجاد</button>
       </div>
       <div class="row" style="margin-top:8px"><span style="color:var(--mu)">⏱ مدت تورنومنت:</span>
-        <input id="ch" type="number" min="0" max="999" step="1" oninput="clampT(this,999)" placeholder="ساعت" style="flex:none;min-width:0;width:80px">
+        <input id="cd" type="number" min="0" max="36500" step="1" oninput="clampT(this,36500)" placeholder="روز" style="flex:none;min-width:0;width:80px">
+        <input id="ch" type="number" min="0" max="23" step="1" oninput="clampT(this,23)" placeholder="ساعت" style="flex:none;min-width:0;width:80px">
         <input id="cm" type="number" min="0" max="59" step="1" oninput="clampT(this,59)" placeholder="دقیقه" style="flex:none;min-width:0;width:80px">
         <input id="cs" type="number" min="0" max="59" step="1" oninput="clampT(this,59)" placeholder="ثانیه" style="flex:none;min-width:0;width:80px">
         <small style="color:var(--mu)">(خالی = بدون محدودیت)</small></div>
+      <div class="row" style="margin-top:8px"><label style="display:flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" id="pz" onchange="togglePz()" style="flex:none;min-width:0;width:auto"> 🎁 تورنومنت جایزه‌دار</label></div>
+      <div id="pzF" style="display:none">
+        <div class="row" style="margin-top:8px"><span>هر</span>
+          <input id="pzP" type="number" min="1" step="1" oninput="pzPrev()" placeholder="مقدار" style="flex:none;min-width:0;width:130px">
+          <span id="pzU">تومان فروش</span><span>=</span>
+          <input id="pzM" type="number" min="1" step="1" placeholder="تعداد" style="flex:none;min-width:0;width:80px"><span>شانس</span>
+          <small id="pzV" style="color:var(--mu)"></small></div>
+        <div class="row" style="margin-top:8px"><span>تعداد افراد برنده:</span>
+          <input id="pzK" type="number" min="1" step="1" placeholder="تعداد" style="flex:none;min-width:0;width:90px"></div>
+      </div>
       <div class="err" id="terr"></div>
     </div>
     <div class="tabs" id="tabs"></div>
@@ -54,10 +65,12 @@
 <dialog id="dlgT">
   <b>⏱ ویرایش زمان باقی‌مانده</b>
   <p style="color:var(--mu);font-size:.85rem">زمان جدید از همین لحظه شروع به شمارش می‌کند.</p>
-  <div class="row"><input id="eh" type="number" min="0" max="999" step="1" oninput="clampT(this,999)" placeholder="ساعت" style="flex:none;min-width:0;width:80px"><input id="em" type="number" min="0" max="59" step="1" oninput="clampT(this,59)" placeholder="دقیقه" style="flex:none;min-width:0;width:80px"><input id="es" type="number" min="0" max="59" step="1" oninput="clampT(this,59)" placeholder="ثانیه" style="flex:none;min-width:0;width:80px"></div>
+  <div class="row"><input id="ed" type="number" min="0" max="36500" step="1" oninput="clampT(this,36500)" placeholder="روز" style="flex:none;min-width:0;width:80px">
+        <input id="eh" type="number" min="0" max="23" step="1" oninput="clampT(this,23)" placeholder="ساعت" style="flex:none;min-width:0;width:80px"><input id="em" type="number" min="0" max="59" step="1" oninput="clampT(this,59)" placeholder="دقیقه" style="flex:none;min-width:0;width:80px"><input id="es" type="number" min="0" max="59" step="1" oninput="clampT(this,59)" placeholder="ثانیه" style="flex:none;min-width:0;width:80px"></div>
   <div class="err" id="terr2"></div>
   <div class="row" style="margin-top:12px"><button onclick="setTimer()">اعمال</button><button class="sec" onclick="dlgT.close()">انصراف</button></div>
 </dialog>
+<dialog id="dlgW"><div id="wbody"></div></dialog>
 </div>
 
 <div class="cr screen"><span dir="ltr">Copyright: Emad Pourjafar</span></div>
@@ -65,7 +78,7 @@
 <script>
 const $ = id => document.getElementById(id), MAX = 3;
 let list = [], cur = null, editId = null, pending = null, S = null, sha = null, adminQ = '';
-let saving = false, again = false, timer = null;
+let saving = false, again = false, timer = null, drawOpen = false, drawing = false;
 
 // ---- ارتباط با گیت‌هاب ----
 const API = () => `https://api.github.com/repos/${S.owner}/${S.repo}/contents/${S.path}`;
@@ -137,7 +150,7 @@ function uid() { return Array.from(crypto.getRandomValues(new Uint8Array(10)), b
 function linkOf(id) { return new URL('../', location.href).href + '?t=' + id; }
 let newId = null, endedShown = null;
 function clampT(el, max) { if (el.value === '') return; let v = Math.floor(+el.value); if (isNaN(v) || v < 0) v = 0; if (v > max) v = max; el.value = v; }
-const durOf = p => { const g = (k, max) => Math.min(max, Math.max(0, Math.floor(+$(p + k).value || 0))); return (g('h', 999) * 3600 + g('m', 59) * 60 + g('s', 59)) * 1000; };
+const durOf = p => { const g = (k, max) => Math.min(max, Math.max(0, Math.floor(+$(p + k).value || 0))); return (g('d', 36500) * 86400 + g('h', 23) * 3600 + g('m', 59) * 60 + g('s', 59)) * 1000; };
 const tmText = t => !t.endsAt ? 'بدون محدودیت زمان' : isEnded(t) ? '🏁 تمام شد' : fmtT(t.endsAt - now());
 function themeHTML(t) {
   const cur = THEMES.find(h => h.id === t.theme) || THEMES[0];
@@ -156,6 +169,7 @@ function pdfHTML(t) {
   const pod = order.map(r => `<div class="pc ${cls(r.rank)}"><div class="pn">${esc(r.name)}</div><div class="pcty">${esc(r.city)}</div><div class="pv">${nf(r.value)}</div><div class="pb"><span>${nf(r.rank)}</span><small>${MEDAL[r.rank][1]}</small></div></div>`).join('');
   const body = rows.map(r => `<tr class="${cls(r.rank)}"><td><span class="bd">${nf(r.rank)}</span></td><td class="nm">${esc(r.name)}</td><td>${esc(r.city)}</td><td class="vc"><b>${nf(r.value)}</b><div class="vb"><i style="width:${Math.max(3, r.value / max * 100)}%"></i></div></td></tr>`).join('');
   return `<div class="pdf"><div class="ph"><div><span class="k">نتایج نهایی تورنومنت</span><h1>${esc(t.name)}</h1><div class="pt">${T.label} · ${t.endsAt ? 'پایان' : 'تاریخ'}: ${when}</div></div>${CUP}</div>
+  ${winnersHTML(t)}
   <div class="ps"><div class="c1"><small>${T.sum}</small><b>${nf(total(t.rows))}</b></div><div class="c2"><small>تعداد شرکت‌کنندگان</small><b>${nf(rows.length)}</b></div><div class="c3"><small>نفر اول</small><b>${rows[0] ? esc(rows[0].name) : '—'}</b></div></div>
   ${pod ? `<div class="sec">سکوی قهرمانان</div><div class="pod">${pod}</div>` : ''}
   <div class="sec">جدول کامل نتایج</div>
@@ -164,7 +178,7 @@ function pdfHTML(t) {
   <div class="pf">تهیه‌شده از سامانه‌ی تورنومنت · ${new Date().toLocaleDateString('fa-IR')}<br><span dir="ltr" style="font-size:9px">Copyright: Emad Pourjafar</span></div></div>`;
 }
 function openTimer() {
-  if (isEnded(curT())) return; ['eh', 'em', 'es'].forEach(i => $(i).value = ''); $('terr2').textContent = ''; $('dlgT').showModal(); }
+  if (isEnded(curT())) return; ['ed', 'eh', 'em', 'es'].forEach(i => $(i).value = ''); $('terr2').textContent = ''; $('dlgT').showModal(); }
 function setTimer() {
   if (isEnded(curT())) { $('dlgT').close(); return; }
   const d = durOf('e'); if (d <= 0) { $('terr2').textContent = 'زمان باقی‌مانده را وارد کنید'; return; }
@@ -183,7 +197,14 @@ function copyLink(btn) {
 function createT() {
   const name = $('tn').value.trim(); $('terr').textContent = '';
   if (!name) { $('terr').textContent = 'نام تورنومنت را وارد کنید'; return; }
+  let prize = null;
+  if ($('pz').checked) {
+    const per = Math.floor(+$('pzP').value), ch = Math.floor(+$('pzM').value), count = Math.floor(+$('pzK').value);
+    if (!(per >= 1 && ch >= 1 && count >= 1)) { $('terr').textContent = 'برای تورنومنت جایزه‌دار، هر سه مقدار (مبلغ/پرزنت، شانس، تعداد برنده) باید عددی بزرگ‌تر از صفر باشند'; return; }
+    prize = { per, ch, count };
+  }
   pending = { id: uid(), name, type: $('tt').value, rows: [], dur: durOf('c') };
+  if (prize) pending.prize = prize;
   if (list.length < MAX) return saveNew();
   $('opts').innerHTML = list.map((t, i) => `<label><input type="radio" name="rep" value="${t.id}" ${i ? '' : 'checked'}> ${esc(t.name)} <span class="badge">${TYPES[t.type].label}</span></label>`).join('');
   $('dlg').showModal();
@@ -191,7 +212,7 @@ function createT() {
 function saveNew(replaceId) {
   if (replaceId) list = list.filter(t => t.id !== replaceId);
   pending.endsAt = pending.dur ? now() + pending.dur : null; delete pending.dur;
-  list.push(pending); cur = pending.id; newId = cur; ['ch', 'cm', 'cs'].forEach(i => $(i).value = ''); pending = null; $('tn').value = ''; commit();
+  list.push(pending); cur = pending.id; newId = cur; ['cd', 'ch', 'cm', 'cs', 'pzP', 'pzM', 'pzK'].forEach(i => $(i).value = ''); $('pz').checked = false; togglePz(); pending = null; $('tn').value = ''; commit();
 }
 function confirmReplace() { const id = document.querySelector('input[name=rep]:checked').value; $('dlg').close(); saveNew(id); }
 function delT(id) { if (confirm('این تورنومنت و همه‌ی رکوردهایش حذف شود؟')) { list = list.filter(t => t.id !== id); commit(); } }
@@ -233,15 +254,19 @@ function act(r, buttons) {
 function render() {
   if (!list.length) { $('tabs').innerHTML = ''; $('view').innerHTML = '<p class="empty">هنوز تورنومنتی نساخته‌اید.</p>'; $('print').innerHTML = ''; return; }
   if (!list.find(t => t.id === cur)) cur = list[0].id;
-  $('tabs').innerHTML = list.map(t => `<button class="tab ${t.id === cur ? 'on' : ''}" onclick="cur='${t.id}';editId=null;newId=null;adminQ='';render()">${esc(t.name)}</button>`).join('') + `<span style="color:var(--mu);align-self:center">${nf(list.length)} از ${nf(MAX)}</span>`;
+  $('tabs').innerHTML = list.map(t => `<button class="tab ${t.id === cur ? 'on' : ''}" onclick="cur='${t.id}';editId=null;newId=null;adminQ='';drawOpen=false;render()">${esc(t.name)}</button>`).join('') + `<span style="color:var(--mu);align-self:center">${nf(list.length)} از ${nf(MAX)}</span>`;
   const t = curT(), T = TYPES[t.type], ended = isEnded(t), canPrint = !t.endsAt || ended; endedShown = ended; if (ended && $('dlgT').open) $('dlgT').close();
+  $('print').innerHTML = canPrint ? pdfHTML(t) : '<p>خروجی چاپ فقط پس از پایان مسابقه در دسترس است.</p>';
+  if (drawOpen && t.prize && ended) { $('view').innerHTML = drawHTML(t); return; }
+  drawOpen = false;
   $('view').innerHTML = `<div class="card">
     <div class="row" style="justify-content:space-between"><h2 style="margin:0">${esc(t.name)}<span class="badge">${T.label}</span></h2>
-      <span>${canPrint ? '<button class="sm" onclick="window.print()">📄 خروجی PDF</button>' : '<button class="sm" disabled style="opacity:.5">📄 PDF بعد از پایان مسابقه</button>'} <button class="sm del" onclick="delT('${t.id}')">حذف تورنومنت</button></span></div>
+      <span>${canPrint ? '<button class="sm" onclick="window.print()">📄 خروجی PDF</button>' : '<button class="sm" disabled style="opacity:.5">📄 PDF بعد از پایان مسابقه</button>'} ${t.prize && ended ? '<button class="sm" onclick="openDraw()">🎁 لیست قرعه‌کشی جایزه</button> ' : ''}${!t.endsAt ? '<button class="sm sec" onclick="endT()">🏁 پایان تورنومنت</button> ' : ''}<button class="sm del" onclick="delT('${t.id}')">حذف تورنومنت</button></span></div>
     ${newId === t.id ? '<p style="color:#15803d;font-weight:700">✅ تورنومنت ساخته شد. لینک اختصاصی‌اش را کپی کنید و برای شرکت‌کنندگان بفرستید.</p>' : ''}
     <div class="row" style="margin:8px 0"><span style="color:var(--mu)">🔗 لینک اختصاصی:</span><input id="lk" readonly dir="ltr" value="${linkOf(t.id)}" onclick="this.select()"><button class="sm" onclick="copyLink(this)">کپی لینک</button></div>
     ${themeHTML(t)}
     <div class="stat">${T.sum}:<b>${nf(total(t.rows))}</b></div> <div class="stat">⏱ <b id="tm" style="direction:ltr;unicode-bidi:isolate;display:inline-block">${tmText(t)}</b> ${ended ? '<button class="sm sec" disabled title="زمان پایان یافته و قابل ویرایش نیست" style="opacity:.5">🔒</button>' : '<button class="sm sec" title="ویرایش زمان" onclick="openTimer()">✏️</button>'}</div>
+    ${t.prize ? `<div class="stat">🎁 ${prizeRule(t)}</div>` : ''}${t.prize && (t.winners || []).length ? winnersHTML(t) : ''}
     ${ended && !editId ? '<p class="err">⏰ زمان تورنومنت تمام شده؛ افزودن ردیف جدید غیرفعال است.</p>' : `<div class="row" style="margin:10px 0"><input id="rn" placeholder="نام و نام‌خانوادگی"><input id="rc" placeholder="شهر">
       <input id="rv" type="number" min="0" placeholder="${T.col}" onkeydown="if(event.key==='Enter')addRow()">
       <button onclick="addRow()">${editId ? 'ذخیره' : 'افزودن'}</button>${editId ? '<button class="sec" onclick="cancelEdit()">انصراف</button>' : ''}</div>`}
@@ -250,6 +275,76 @@ function render() {
     <div class="scroll" id="tbl">${tableHTML(t, act, adminQ)}</div></div>`;
   $('print').innerHTML = canPrint ? pdfHTML(t) : '<p>خروجی چاپ فقط پس از پایان مسابقه در دسترس است.</p>';
 }
+
+// ---- جایزه‌دار و قرعه‌کشی ----
+function togglePz() { $('pzF').style.display = $('pz').checked ? 'block' : 'none'; pzUnit(); }
+function pzUnit() { $('pzU').textContent = pUnit($('tt').value); pzPrev(); }
+function pzPrev() { const v = Math.floor(+$('pzP').value); $('pzV').textContent = v >= 1 ? '(' + nf(v) + ')' : ''; }
+function endT() {
+  const t = curT(); if (!t || t.endsAt) return;
+  if (!confirm('تورنومنت بسته شود؟ بعد از آن افزودن رکورد جدید ممکن نیست و این کار قابل برگشت نیست.')) return;
+  t.endsAt = now(); commit();
+}
+function openDraw() { drawOpen = true; render(); window.scrollTo(0, 0); }
+function closeDraw() { drawOpen = false; render(); }
+function setK() { const k = Math.floor(+$('kn').value), t = curT(); if (!(k >= 1) || (t.winners || []).length) return; t.prize.count = k; commit(); }
+function drawHTML(t) {
+  const T = TYPES[t.type], el = eligible(t), K = t.prize.count, w = t.winners || [], done = w.length >= K, won = new Set(w.map(x => x.id));
+  let err = '';
+  if (!done) err = !el.length ? 'هیچ‌کس شانس قرعه‌کشی ندارد؛ قرعه‌کشی ممکن نیست.'
+    : K > el.length ? `تعداد برنده‌ها (${nf(K)}) از تعداد شرکت‌کنندگان دارای شانس (${nf(el.length)}) بیشتر است؛ قرعه‌کشی ممکن نیست.` : '';
+  const btn = done ? '<button onclick="showAll()">🏆 نمایش برنده‌ها</button>'
+    : `<button onclick="nextWinner()" ${err ? 'disabled style="opacity:.5"' : ''}>🎲 ${w.length ? 'برنده خوش‌شانس بعدی کیه؟' : 'برنده خوش‌شانس کیه؟'}</button>`;
+  const rows = el.map((r, i) => `<tr class="${won.has(r.id) ? 'top gold' : ''}"><td>${nf(i + 1)}</td><td>${won.has(r.id) ? '🏆 ' : ''}${esc(r.name)}</td><td>${esc(r.city)}</td><td class="num">${nf(r.ch)}</td><td class="num">${nf(r.value)}</td></tr>`).join('');
+  return `<div class="card"><div class="row" style="justify-content:space-between"><h2 style="margin:0">🎁 لیست قرعه‌کشی جایزه<span class="badge">${esc(t.name)}</span></h2><button class="sm sec" onclick="closeDraw()">⬅ بازگشت</button></div>
+    <p style="color:var(--mu)">${prizeRule(t)}</p>
+    ${err ? `<p class="err">⚠️ ${err}</p>` : ''}
+    ${!w.length ? `<div class="row" style="margin:8px 0"><span style="color:var(--mu)">تعداد برنده:</span><input id="kn" type="number" min="1" step="1" value="${K}" style="flex:none;min-width:0;width:80px"><button class="sm sec" onclick="setK()">اعمال</button></div>` : ''}
+    <div class="row" style="margin:10px 0">${btn}</div>
+    <div class="scroll">${el.length ? `<table><thead><tr><th>#</th><th>نام و نام‌خانوادگی</th><th>شهر</th><th>شانس</th><th>${T.col}</th></tr></thead><tbody>${rows}</tbody><tfoot><tr><td colspan="3">مجموع شانس‌ها</td><td class="num">${nf(el.reduce((s, x) => s + x.ch, 0))}</td><td></td></tr></tfoot></table>` : '<p class="empty">هیچ‌کس شانسی ندارد.</p>'}</div></div>`;
+}
+// عدد تصادفی واقعی و یکنواخت در بازه‌ی [0, n) با crypto (بدون سوگیری)
+function rand(n) {
+  const a = new Uint32Array(2), M = 9007199254740992, lim = Math.floor(M / n) * n; let x;
+  do { crypto.getRandomValues(a); x = (a[0] >>> 5) * 67108864 + (a[1] >>> 6); } while (x >= lim);
+  return x % n;
+}
+function weighted(pool) {
+  let r = rand(pool.reduce((s, x) => s + x.ch, 0));
+  for (const x of pool) { if (r < x.ch) return x; r -= x.ch; }
+  return pool[pool.length - 1];
+}
+function nextWinner() {
+  const t = curT(); if (!t || !t.prize || drawing) return;
+  const el = eligible(t), w = t.winners || [], won = new Set(w.map(x => x.id)), pool = el.filter(x => !won.has(x.id));
+  if (w.length >= t.prize.count || t.prize.count > el.length || !pool.length) { render(); return; }
+  const n = w.length, pick = weighted(pool), DUR = 5000, t0 = performance.now(); let last = -1;
+  drawing = true;
+  $('wbody').innerHTML = `<div class="wk">🎲 در حال انتخاب برنده‌ی ${ordFa(n + 1)}…</div><div class="wsp" id="wsp">…</div>`;
+  if (!$('dlgW').open) $('dlgW').showModal();
+  (function tick() {
+    const e = performance.now() - t0;
+    if (e >= DUR) return revealW(t, pick, n);
+    let i, guard = 0;
+    do { i = rand(pool.length); } while (pool.length > 1 && guard++ < 20 && (i === last || (e > DUR * .85 && pool[i].id === pick.id)));
+    last = i; $('wsp').textContent = pool[i].name;
+    setTimeout(tick, 45 + 420 * Math.pow(e / DUR, 2.2)); // اول تند، آخر کند
+  })();
+}
+function revealW(t, pick, n) {
+  const x = { id: pick.id, name: pick.name, city: pick.city, value: pick.value, ch: pick.ch };
+  t.winners = [...(t.winners || []), x]; drawing = false;
+  const more = t.winners.length < t.prize.count;
+  $('wbody').innerHTML = `<div class="wk">🎉 برنده‌ی ${ordFa(n + 1)}</div><div class="wfin">${esc(x.name)}</div><div class="wdet">📍 ${esc(x.city)}<br>🍀 ${nf(x.ch)} شانس<br>${t.type === 'sales' ? '💰 مبلغ فروش' : '🎯 پرزنت ست‌شده'}: ${valText(t.type, x.value)}</div>
+    <div class="row" style="justify-content:center;margin-top:16px">${more ? '<button onclick="nextWinner()">برنده خوش‌شانس بعدی کیه؟</button>' : '<button onclick="showAll()">🏆 نمایش لیست برنده‌ها</button>'}<button class="sec" onclick="closeW()">بستن</button></div>`;
+  commit();
+}
+function showAll() {
+  $('wbody').innerHTML = winnersHTML(curT()) + '<div class="row" style="justify-content:center;margin-top:12px"><button class="sec" onclick="closeW()">بستن</button></div>';
+  if (!$('dlgW').open) $('dlgW').showModal();
+}
+function closeW() { if (!drawing) $('dlgW').close(); }
+$('dlgW').addEventListener('cancel', e => { if (drawing) e.preventDefault(); });
 
 // ---- شروع (بعد از تعریف همه‌ی توابع) ----
 (function init() {
