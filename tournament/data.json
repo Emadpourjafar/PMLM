@@ -115,7 +115,19 @@
      "ch": 1
     }
    ]
+  },
+  {
+   "id": "2q0p5td79u",
+   "name": "تستی",
+   "type": "present",
+   "rows": [],
+   "prize": {
+    "per": 5,
+    "ch": 1,
+    "count": 2
+   },
+   "endsAt": null
   }
  ],
- "updated": "2026-11-28T13:15:06.136Z"
+ "updated": "2026-11-28T13:15:24.714Z"
 }
