@@ -100,7 +100,19 @@
    },
    "endsAt": 1795861717286,
    "theme": "rose"
+  },
+  {
+   "id": "rvvdhjqudq",
+   "name": "تست بسته شدن",
+   "type": "present",
+   "rows": [],
+   "prize": {
+    "per": 3,
+    "ch": 1,
+    "count": 3
+   },
+   "endsAt": null
   }
  ],
- "updated": "2026-11-28T09:24:56.963Z"
+ "updated": "2026-11-28T09:27:23.610Z"
 }
