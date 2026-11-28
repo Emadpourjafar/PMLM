@@ -88,3 +88,19 @@ dialog label{display:block;padding:8px 0}
   .pdf .tot{display:flex;justify-content:space-between;background:linear-gradient(120deg,#4f46e5,#7c3aed);color:#fff;border-radius:14px;padding:14px 22px;font-weight:700;margin-top:10px;font-size:16px}
   .pdf .pf{text-align:center;color:#9ca3af;font-size:11px;margin-top:18px;border-top:1px dashed #d1d5db;padding-top:10px}
 }
+
+.wbx{background:#fffbeb;border:1px solid #fcd34d;border-radius:14px;padding:14px;margin:12px 0;page-break-inside:avoid}
+.wbx .wh{font-weight:800;text-align:center;color:#b45309;font-size:1.05rem}
+.wbx .wrule{text-align:center;color:var(--mu);font-size:.78rem;margin:4px 0 8px}
+.wbx .wq{text-align:center;padding:12px;font-weight:700;color:#92400e}
+.wbx .wmore{text-align:center;color:var(--mu);font-size:.8rem;margin-top:8px}
+.wit{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #fde68a;border-radius:10px;padding:8px 12px;margin-top:6px}
+.wo{flex:none;background:linear-gradient(#fbbf24,#b45309);color:#fff;font-weight:700;font-size:.75rem;border-radius:99px;padding:4px 10px}
+.wm{flex:1;min-width:0}.wn{font-weight:700}.wm small{color:var(--mu)}
+#dlgW{max-width:460px;text-align:center;border-radius:18px}
+.wk{color:var(--mu);font-size:.9rem}
+.wsp{font-size:1.8rem;font-weight:800;margin:18px 0;min-height:2.6em;display:flex;align-items:center;justify-content:center;color:var(--pr)}
+.wfin{font-size:2rem;font-weight:800;margin:14px 0 6px;color:var(--pr);animation:pop .5s cubic-bezier(.2,.9,.3,1.4) both}
+.wdet{color:var(--mu);line-height:1.9}
+@keyframes pop{from{transform:scale(.4);opacity:0}}
+@media print{.pdf .wbx{margin:16px 0 0}}

@@ -45,9 +45,13 @@ function tableHTML(t, act, q) {
 let SKEW = 0;
 const now = () => Date.now() + SKEW;
 const faD = s => String(s).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
-function fmtT(ms) {
+function fmtT(ms, html) {
   const s = Math.max(0, Math.ceil(ms / 1000)), p = n => String(n).padStart(2, '0');
-  return faD(Math.floor(s / 3600) + ':' + p(Math.floor(s % 3600 / 60)) + ':' + p(s % 60));
+  const d = Math.floor(s / 86400), r = s % 86400, h = Math.floor(r / 3600);
+  const hms = faD((d ? p(h) : h) + ':' + p(Math.floor(r % 3600 / 60)) + ':' + p(s % 60));
+  if (!d) return hms;
+  // html=true: برای صفحه‌ی کلاینت؛ حروف فارسی «روز» نباید letter-spacing بگیرند وگرنه از هم جدا می‌شوند
+  return (html ? `<span style="letter-spacing:0">${faD(d)} روز</span> · ` : faD(d) + ' روز · ') + hms;
   
 }
 const isEnded = t => !!t.endsAt && now() >= t.endsAt;
@@ -77,3 +81,22 @@ const THEMES = [
   { id: 'midnight', name: 'نیمه‌شب',      g1: '#1d4ed8', g2: '#312e81', bg: '#070c1d' },
   { id: 'graphite', name: 'خاکستری نقره‌ای', g1: '#475569', g2: '#334155', bg: '#0c1017' }
 ];
+
+// ---- تورنومنت جایزه‌دار ----
+const ORD = ['اول', 'دوم', 'سوم', 'چهارم', 'پنجم', 'ششم', 'هفتم', 'هشتم', 'نهم', 'دهم'];
+const ordFa = n => n <= 10 ? ORD[n - 1] : nf(n) + 'ام';
+const pUnit = type => type === 'sales' ? 'تومان فروش' : 'پرزنت';
+const valText = (type, v) => type === 'sales' ? nf(v) + ' تومان' : nf(v) + ' پرزنت';
+const prizeRule = t => `هر ${nf(t.prize.per)} ${pUnit(t.type)} = ${nf(t.prize.ch)} شانس · ${nf(t.prize.count)} برنده`;
+// افراد دارای حداقل یک شانس، به ترتیب رتبه
+const eligible = t => ranked(t.rows).map(r => ({ ...r, ch: Math.floor(r.value / t.prize.per) * t.prize.ch })).filter(r => r.ch > 0);
+// باکس «برنده‌ها» (برای صفحه‌ی مدیر، کلاینت و PDF)
+function winnersHTML(t) {
+  if (!t.prize) return '';
+  const w = t.winners || [], K = t.prize.count;
+  const body = !w.length
+    ? '<div class="wq">🤔 به‌نظرت کی برنده می‌شه؟</div>'
+    : w.map((x, i) => `<div class="wit"><span class="wo">برنده‌ی ${ordFa(i + 1)}</span><div class="wm"><div class="wn">🏆 ${esc(x.name)}</div><small>📍 ${esc(x.city)} · 🍀 ${nf(x.ch)} شانس · ${t.type === 'sales' ? '💰' : '🎯'} ${valText(t.type, x.value)}</small></div></div>`).join('')
+      + (w.length < K ? '<div class="wmore">قرعه‌کشی ادامه دارد…</div>' : '');
+  return `<div class="wbx"><div class="wh">🏆 برنده‌ها</div><div class="wrule">${prizeRule(t)}</div>${body}</div>`;
+}

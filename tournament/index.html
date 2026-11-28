@@ -59,6 +59,14 @@ h1{font-size:2rem;margin:12px 0 4px;background:linear-gradient(90deg,#fde68a,#fb
 .it.tp2{border-color:#e2e8f055;background:#e2e8f012}
 .it.tp3{border-color:#fdba7455;background:#fdba7412}
 .rk.m{background:none;font-size:1.5rem}
+.wbx{background:linear-gradient(135deg,#fbbf2426,#f472b61f);border:1px solid #fbbf2466;border-radius:18px;padding:14px;margin:16px 0;box-shadow:0 0 40px #fbbf2422}
+.wh{font-weight:800;font-size:1.1rem;text-align:center;color:#fde68a}
+.wrule{text-align:center;color:#c7d2fe;font-size:.75rem;margin:4px 0 10px}
+.wq{text-align:center;padding:14px 6px;font-size:1.15rem;font-weight:700;animation:fl 2s ease-in-out infinite}
+.wit{display:flex;align-items:center;gap:10px;background:#ffffff12;border:1px solid #fbbf2433;border-radius:12px;padding:9px 12px;margin-top:8px;animation:up .5s both}
+.wo{flex:none;background:linear-gradient(#fcd34d,#b45309);color:#1d1300;font-weight:800;font-size:.75rem;border-radius:99px;padding:4px 10px}
+.wm{flex:1;min-width:0}.wn{font-weight:700}.wm small{color:#c7d2fe}
+.wmore{text-align:center;color:#c7d2fe;font-size:.8rem;margin-top:8px}
 </style></head>
 <body><div class="wrap"><div id="app"></div><div class="sbar" id="sbar" hidden><span class="si">🔍</span><input id="sq" type="text" inputmode="search" enterkeyhint="search" autocomplete="off" placeholder="جستجوی نام یا شهر…"><button class="sx" id="sx" type="button" aria-label="پاک کردن جستجو" hidden>✕</button></div><div id="board"></div></div>
 <div class="cr"><span dir="ltr">Copyright: Emad Pourjafar</span></div>
@@ -74,13 +82,13 @@ function tmBox(t) {
   if (!t.endsAt) return '';
   if (isEnded(t)) return '<div class="timer end">🏁 مسابقه به پایان رسید</div>';
   const r = t.endsAt - now();
-  return `<div class="timer ${r < 60000 ? 'hot' : ''}"><small>⏳ زمان باقی‌مانده</small><b id="tm">${fmtT(r)}</b></div>`;
+  return `<div class="timer ${r < 60000 ? 'hot' : ''}"><small>⏳ زمان باقی‌مانده</small><b id="tm">${fmtT(r, true)}</b></div>`;
 }
 setInterval(() => {
   const t = list.find(x => x.id === q); if (!t || !t.endsAt) return;
   if (isEnded(t) !== lastEnded) return render();
   const e = gid('tm'); if (!e) return;
-  e.textContent = fmtT(t.endsAt - now()); e.parentNode.classList.toggle('hot', t.endsAt - now() < 60000);
+  e.innerHTML = fmtT(t.endsAt - now(), true); e.parentNode.classList.toggle('hot', t.endsAt - now() < 60000);
 }, 1000);
 function applyTheme(t) {
   const th = THEMES.find(x => x.id === t.theme) || THEMES[0], st = document.documentElement.style;
@@ -119,7 +127,7 @@ function render() {
   const T = TYPES[t.type], rows = ranked(t.rows); lastEnded = isEnded(t); applyTheme(t);
   if (!rows.length) return msg('🔥', 'هنوز رکوردی ثبت نشده؛ مسابقه به‌زودی شروع می‌شود!');
   const max = rows[0].value || 1;
-  app.innerHTML = `<div class="hero">${lastEnded ? endPill(t) : '<span class="live"><i></i>زنده</span>'}<h1>${esc(t.name)}</h1><div class="type">${T.label}</div>${tmBox(t)}</div>
+  app.innerHTML = `<div class="hero">${lastEnded ? endPill(t) : '<span class="live"><i></i>زنده</span>'}<h1>${esc(t.name)}</h1><div class="type">${T.label}</div>${tmBox(t)}</div>${winnersHTML(t)}
   <div class="stats"><div class="st"><small>${T.sum}</small><b data-n="${total(t.rows)}">${nf(total(t.rows))}</b></div><div class="st"><small>شرکت‌کنندگان</small><b>${nf(rows.length)}</b></div><div class="st"><small>بالاترین رکورد</small><b data-n="${max}">${nf(max)}</b></div></div>`;
   sbar.hidden = false; renderBoard(!sq);
   if (first) { first = false; if (!base) base = {}; countUp(); }
