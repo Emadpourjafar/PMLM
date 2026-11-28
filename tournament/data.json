@@ -105,7 +105,14 @@
    "id": "rvvdhjqudq",
    "name": "تست بسته شدن",
    "type": "present",
-   "rows": [],
+   "rows": [
+    {
+     "id": "rawgebkfk5",
+     "name": "عماد پورجعفر",
+     "city": "رشت",
+     "value": 2
+    }
+   ],
    "prize": {
     "per": 3,
     "ch": 1,
@@ -114,5 +121,5 @@
    "endsAt": null
   }
  ],
- "updated": "2026-11-28T09:27:23.610Z"
+ "updated": "2026-11-28T09:27:41.523Z"
 }
