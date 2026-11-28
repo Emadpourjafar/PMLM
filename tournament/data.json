@@ -124,7 +124,14 @@
    "id": "nmb3xbf64y",
    "name": "آزمایشی",
    "type": "present",
-   "rows": [],
+   "rows": [
+    {
+     "id": "35g4memfpq",
+     "name": "الف",
+     "city": "تهران",
+     "value": 3
+    }
+   ],
    "prize": {
     "per": 2,
     "ch": 1,
@@ -134,5 +141,5 @@
    "theme": "midnight"
   }
  ],
- "updated": "2026-11-28T16:20:00.884Z"
+ "updated": "2026-11-28T16:20:12.568Z"
 }
