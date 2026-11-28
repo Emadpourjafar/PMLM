@@ -168,8 +168,17 @@
     "count": 2
    },
    "endsAt": 1795882992522.5,
-   "theme": "midnight"
+   "theme": "midnight",
+   "winners": [
+    {
+     "id": "v45haflido",
+     "name": "احمد",
+     "city": "قزوین",
+     "value": 5,
+     "ch": 2
+    }
+   ]
   }
  ],
- "updated": "2026-11-28T16:22:18.433Z"
+ "updated": "2026-11-28T16:23:22.948Z"
 }
