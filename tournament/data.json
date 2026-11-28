@@ -48,7 +48,16 @@
     "count": 5
    },
    "endsAt": 1795861717286,
-   "theme": "rose"
+   "theme": "rose",
+   "winners": [
+    {
+     "id": "pev1yetdf5",
+     "name": "حسن",
+     "city": "علی‌آباد",
+     "value": 20443000,
+     "ch": 4
+    }
+   ]
   },
   {
    "id": "rvvdhjqudq",
@@ -137,5 +146,5 @@
    "theme": "ocean"
   }
  ],
- "updated": "2026-11-28T13:15:42.857Z"
+ "updated": "2026-11-28T13:16:27.574Z"
 }
