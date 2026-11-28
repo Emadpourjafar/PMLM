@@ -38,70 +38,7 @@
    ],
    "endsAt": 1795569101556,
    "theme": "emerald"
-  },
-  {
-   "id": "3st37pqvrm",
-   "name": "پرزنت ست کن",
-   "type": "sales",
-   "rows": [
-    {
-     "id": "gxv37q7zoq",
-     "name": "حدیث",
-     "city": "اصفهان",
-     "value": 30000000
-    },
-    {
-     "id": "ykku0lnnpr",
-     "name": "علی",
-     "city": "رشت",
-     "value": 21750000
-    },
-    {
-     "id": "ujnk32y6ba",
-     "name": "دلین",
-     "city": "رشت",
-     "value": 51648000
-    },
-    {
-     "id": "7c10ok0hiq",
-     "name": "مبینا",
-     "city": "تهران",
-     "value": 29548000
-    },
-    {
-     "id": "tbv7dpkab0",
-     "name": "غلام",
-     "city": "آبادان",
-     "value": 22680000
-    },
-    {
-     "id": "3aw0eyhu3i",
-     "name": "زهرا",
-     "city": "بجنورد",
-     "value": 14754000
-    },
-    {
-     "id": "6ou411extt",
-     "name": "حسن",
-     "city": "خارک",
-     "value": 660000
-    },
-    {
-     "id": "86v0m5pcc1",
-     "name": "آتوسا",
-     "city": "همدان",
-     "value": 5487000
-    },
-    {
-     "id": "gcxxtto7yr",
-     "name": "حمید",
-     "city": "خمام",
-     "value": 18450000
-    }
-   ],
-   "endsAt": 1795625503195,
-   "theme": "aurora"
   }
  ],
- "updated": "2026-11-25T16:48:39.792Z"
+ "updated": "2026-11-28T09:14:44.641Z"
 }
