@@ -1,93 +1,6 @@
 {
  "tournaments": [
   {
-   "id": "dpxbm9isky",
-   "name": "آزمایشی قرعه‌کشی",
-   "type": "sales",
-   "rows": [
-    {
-     "id": "j5mp1pwm5j",
-     "name": "سودابه",
-     "city": "رشت",
-     "value": 12750000
-    },
-    {
-     "id": "llp8t550il",
-     "name": "جاوید",
-     "city": "اصفهان",
-     "value": 32545000
-    },
-    {
-     "id": "pev1yetdf5",
-     "name": "حسن",
-     "city": "علی‌آباد",
-     "value": 20443000
-    },
-    {
-     "id": "c1uatc7e4a",
-     "name": "مهوش",
-     "city": "گنبد",
-     "value": 33450000
-    },
-    {
-     "id": "m01a2mn1r7",
-     "name": "سحر",
-     "city": "تهران",
-     "value": 65900000
-    },
-    {
-     "id": "ndx1izr334",
-     "name": "شیرین",
-     "city": "برازجان",
-     "value": 175050000
-    }
-   ],
-   "prize": {
-    "per": 5000000,
-    "ch": 1,
-    "count": 5
-   },
-   "endsAt": 1795861717286,
-   "theme": "rose",
-   "winners": [
-    {
-     "id": "pev1yetdf5",
-     "name": "حسن",
-     "city": "علی‌آباد",
-     "value": 20443000,
-     "ch": 4
-    },
-    {
-     "id": "m01a2mn1r7",
-     "name": "سحر",
-     "city": "تهران",
-     "value": 65900000,
-     "ch": 13
-    },
-    {
-     "id": "ndx1izr334",
-     "name": "شیرین",
-     "city": "برازجان",
-     "value": 175050000,
-     "ch": 35
-    },
-    {
-     "id": "j5mp1pwm5j",
-     "name": "سودابه",
-     "city": "رشت",
-     "value": 12750000,
-     "ch": 2
-    },
-    {
-     "id": "llp8t550il",
-     "name": "جاوید",
-     "city": "اصفهان",
-     "value": 32545000,
-     "ch": 6
-    }
-   ]
-  },
-  {
    "id": "b3tnv82ao2",
    "name": "نمایشی",
    "type": "sales",
@@ -121,5 +34,5 @@
    "theme": "rose"
   }
  ],
- "updated": "2026-11-28T16:26:03.561Z"
+ "updated": "2026-11-28T16:26:06.070Z"
 }
