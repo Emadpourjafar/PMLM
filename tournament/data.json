@@ -119,7 +119,19 @@
    ],
    "endsAt": 1795882685175,
    "theme": "rose"
+  },
+  {
+   "id": "nmb3xbf64y",
+   "name": "آزمایشی",
+   "type": "present",
+   "rows": [],
+   "prize": {
+    "per": 2,
+    "ch": 1,
+    "count": 2
+   },
+   "endsAt": 1795883114293.5
   }
  ],
- "updated": "2026-11-28T16:16:04.787Z"
+ "updated": "2026-11-28T16:19:54.842Z"
 }
